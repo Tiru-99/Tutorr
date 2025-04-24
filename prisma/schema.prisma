@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  phoneNumber String
+  password    String
+  type        UserType
+  teacher     Teacher? @relation
+  student     Student? @relation
+}
+
+enum UserType {
+  TEACHER
+  STUDENT
+}
+
+model Teacher {
+  id                String          @id @default(uuid())
+  userId            String          @unique
+  user              User            @relation(fields: [userId], references: [id])
+  company_name      String
+  highest_education String
+  years_of_exp      Int
+  about             String
+  license           String //link of the pdf document
+  expertise         String[]
+  session_duration  Int
+  start_time        String
+  end_time          String
+  available_days    String[]
+  subject           String
+  profile_pic       String
+  price             String
+  average_rating    String
+  teacher_review    TeacherReview[]
+  session           Session[]
+}
+
+model Student {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id])
+  interests      String[]
+  profile_pic    String
+  teacher_review TeacherReview[]
+  session        Session[]
+}
+
+model TeacherReview {
+  id        String  @id @default(uuid())
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  comment String?
+  rating  Int
+}
+
+model Session {
+  id              String   @id @default(uuid())
+  teacherId       String
+  teacher         Teacher  @relation(fields: [teacherId], references: [id])
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id])
+  time_of_meeting DateTime
+  meeting_url     String?
+}
+
+enum SessionStatus {
+  SCHEDULED 
+  COMPLETED
+}
