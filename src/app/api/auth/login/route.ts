@@ -1,0 +1,68 @@
+import { NextRequest , NextResponse } from "next/server";  
+import bcrypt from "bcryptjs";
+import prisma from "@/utils/prisma";
+import jwt from 'jsonwebtoken';
+
+
+export async function POST(req : NextRequest , res : NextResponse) {
+
+    const { email , password } = await req.json(); 
+
+    if(!email || !password){
+        console.warn("Incomplete Details in the login route");
+        return NextResponse.json({
+            message : "Incomplete Details"
+        });
+    }
+
+    try {
+        const existingUser = await prisma.user.findFirst({
+            where :{
+                email : email
+            }
+        });
+
+        if(!existingUser){
+            console.log("User with this email is not registered !");
+            return NextResponse.json({
+                message : "User not registered"
+            });
+        }
+
+        const comparePassword = await bcrypt.compare(password , existingUser.password);
+
+        if(!comparePassword){
+            return NextResponse.json({
+                message : "Invalid Email or Password"
+            });
+        }
+
+        const token = jwt.sign({id : existingUser.id} , process.env.NEXT_PUBLIC_JWT_SECRET!);
+
+        console.log("User logged in successfully", existingUser);
+        const response = NextResponse.json({
+            message : "User logged in Successfully",
+            token : token
+        });
+
+        response.cookies.set(
+            'jwtToken',
+            token, 
+            {
+                httpOnly : true,
+                secure : true
+            }
+        );
+
+        return response; 
+
+    } catch (error) {
+        console.log("Something went wrong while loggin in " , error);
+        NextResponse.json({
+            message : "Something went wrong while loggin in",
+            error : error 
+        });
+    }
+
+   
+}

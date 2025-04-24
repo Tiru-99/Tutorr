@@ -45,6 +45,7 @@ model Teacher {
   available_days    String[]
   subject           String
   profile_pic       String
+  banner_pic        String
   price             String
   average_rating    String
   teacher_review    TeacherReview[]
@@ -57,6 +58,7 @@ model Student {
   user           User            @relation(fields: [userId], references: [id])
   interests      String[]
   profile_pic    String
+  banner_pic     String
   teacher_review TeacherReview[]
   session        Session[]
 }
@@ -84,6 +86,6 @@ model Session {
 }
 
 enum SessionStatus {
-  SCHEDULED 
+  SCHEDULED
   COMPLETED
 }
