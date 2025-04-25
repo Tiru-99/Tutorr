@@ -33,11 +33,12 @@ model Teacher {
   userId            String          @unique
   user              User            @relation(fields: [userId], references: [id])
   phoneNumber       String?
+  name              String?
   company_name      String?
   highest_education String?
   years_of_exp      Int?
   about             String?
-  license           String?//link of the pdf document
+  license           String? //link of the pdf document
   expertise         String[]
   session_duration  Int?
   start_time        String?
@@ -57,6 +58,7 @@ model Student {
   userId         String          @unique
   user           User            @relation(fields: [userId], references: [id])
   phoneNumber    String?
+  name           String?
   interests      String[]
   profile_pic    String?
   banner_pic     String?
