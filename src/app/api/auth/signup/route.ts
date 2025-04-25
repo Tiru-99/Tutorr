@@ -3,10 +3,10 @@ import prisma from "@/utils/prisma";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest, res: NextResponse) {
-    const { email, password, name, phoneNumber, type } = await req.json();
+    const { email, password, type , name} = await req.json();
     //check if the user exists in db or not 
 
-    if(!email || !password || !name || !phoneNumber || !type){
+    if(!email || !password || !type || !name){
         console.log("Incomplete incoming user details");
         return NextResponse.json({
             message : "Incomplete details while signing up !"
@@ -36,17 +36,35 @@ export async function POST(req: NextRequest, res: NextResponse) {
         const user = await prisma.user.create({
             data: {
                 email,
+                name , 
                 password: hashedPassword,
-                name,
-                phoneNumber,
                 type
             }
         });
+
+        let typeUser ;
+        //to create empty student & teacher data so that we can update it in the student route
+        if(user.type === "STUDENT"){
+            typeUser = await prisma.student.create({
+                data :{
+                    userId : user.id ,
+                }
+            })
+        } else {
+            typeUser = await prisma.teacher.create({
+                data :{
+                    userId : user.id
+                }
+            })
+        }
+
 
         console.log("Successfully Signed up");
         return NextResponse.json(
             { 
                 message: "Successfully Signed up" ,
+                type : `${type} data created `,
+                typeData : typeUser,
                 user : user
             },
             { status: 200 } 

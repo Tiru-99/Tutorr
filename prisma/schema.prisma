@@ -14,14 +14,13 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String
-  phoneNumber String
-  password    String
-  type        UserType
-  teacher     Teacher? @relation
-  student     Student? @relation
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  type     UserType
+  teacher  Teacher? @relation
+  student  Student? @relation
 }
 
 enum UserType {
@@ -33,21 +32,22 @@ model Teacher {
   id                String          @id @default(uuid())
   userId            String          @unique
   user              User            @relation(fields: [userId], references: [id])
-  company_name      String
-  highest_education String
-  years_of_exp      Int
-  about             String
-  license           String //link of the pdf document
+  phoneNumber       String?
+  company_name      String?
+  highest_education String?
+  years_of_exp      Int?
+  about             String?
+  license           String?//link of the pdf document
   expertise         String[]
-  session_duration  Int
-  start_time        String
-  end_time          String
+  session_duration  Int?
+  start_time        String?
+  end_time          String?
   available_days    String[]
-  subject           String
-  profile_pic       String
-  banner_pic        String
-  price             String
-  average_rating    String
+  subject           String?
+  profile_pic       String?
+  banner_pic        String?
+  price             String?
+  average_rating    String?
   teacher_review    TeacherReview[]
   session           Session[]
 }
@@ -56,9 +56,10 @@ model Student {
   id             String          @id @default(uuid())
   userId         String          @unique
   user           User            @relation(fields: [userId], references: [id])
+  phoneNumber    String?
   interests      String[]
-  profile_pic    String
-  banner_pic     String
+  profile_pic    String?
+  banner_pic     String?
   teacher_review TeacherReview[]
   session        Session[]
 }
