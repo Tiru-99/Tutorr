@@ -29,28 +29,29 @@ enum UserType {
 }
 
 model Teacher {
-  id                String          @id @default(uuid())
-  userId            String          @unique
-  user              User            @relation(fields: [userId], references: [id])
-  phoneNumber       String?
-  name              String?
-  company_name      String?
-  highest_education String?
-  years_of_exp      Int?
-  about             String?
-  license           String? //link of the pdf document
-  expertise         String[]
-  session_duration  Int?
-  start_time        String?
-  end_time          String?
-  available_days    String[]
-  subject           String?
-  profile_pic       String?
-  banner_pic        String?
-  price             String?
-  average_rating    String?
-  teacher_review    TeacherReview[]
-  session           Session[]
+  id                  String                @id @default(uuid())
+  userId              String                @unique
+  user                User                  @relation(fields: [userId], references: [id])
+  phoneNumber         String?
+  name                String?
+  company_name        String?
+  highest_education   String?
+  years_of_exp        Int?
+  about               String?
+  license             String? //link of the pdf document
+  expertise           String[]
+  session_duration    Int?
+  start_time          String?
+  end_time            String?
+  available_days      String[]
+  subject             String?
+  profile_pic         String?
+  banner_pic          String?
+  price               String?
+  average_rating      String?
+  teacher_review      TeacherReview[]
+  session             Session[]
+  TeacherAvailability TeacherAvailability[]
 }
 
 model Student {
@@ -91,4 +92,15 @@ model Session {
 enum SessionStatus {
   SCHEDULED
   COMPLETED
+}
+
+model TeacherAvailability {
+  id             String   @id @default(uuid())
+  teacherId      String
+  teacher        Teacher  @relation(fields: [teacherId], references: [id])
+  date           DateTime
+  dayOfWeek      String
+  available_from String
+  available_to   String
+  isAvailable    Boolean
 }

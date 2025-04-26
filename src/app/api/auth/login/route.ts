@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 
 export async function POST(req : NextRequest , res : NextResponse) {
 
-    const { email , password } = await req.json(); 
+    const { email , password  } = await req.json(); 
 
     if(!email || !password){
         console.warn("Incomplete Details in the login route");
