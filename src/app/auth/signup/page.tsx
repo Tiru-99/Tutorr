@@ -15,7 +15,7 @@ export default function Signup() {
         email: "",
         password: "",
         name: "",
-        type: ""
+        type: "STUDENT"
     });
 
     console.log(data);

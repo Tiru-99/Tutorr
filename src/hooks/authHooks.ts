@@ -7,11 +7,12 @@ const signupUser = async (userData: { email: string; password: string; type: str
   return response.data;
 };
 
-const loginUser = async (userData: { email: string; password: string }) => {
+const loginUser = async (userData: { email: string; password: string ; type:string }) => {
   const response = await axios.post('/api/auth/login', userData, {
     withCredentials: true, // important to send cookies!
   });
-  console.log("The login response data is ", response.data);
+  localStorage.setItem("userId" , response.data.userId );
+  localStorage.setItem("type" , response.data.type); 
   return response.data; 
 }
 
@@ -20,6 +21,21 @@ const isLoggedIn = async() => {
     withCredentials : true
   });
   console.log("the response is from " , response.data)
+  return response.data.authenticated; 
+}
+
+const logoutUser = async() => {
+  const response = await axios.post('/api/auth/logout' , {}, {
+    withCredentials : true 
+  })
+  return response ; 
+}
+
+const isAuthorizedAndAuthenticated = async(userType : string) => {
+  const response = await axios.post('/api/auth/isAuthenticated' , { userType } ,{
+    withCredentials : true 
+  });
+  console.log("Autho" , response);
   return response.data.authenticated; 
 }
 
@@ -37,10 +53,22 @@ export const useLogin = () => {
   })
 };
 
+export const useAuthorized = () => {
+  return useMutation({
+    mutationFn : isAuthorizedAndAuthenticated
+  })
+}
+
 export const useIsAuthenticated = () => {
   return useQuery({
     queryKey: ['isAuthenticated'], 
     queryFn: isLoggedIn,
-    retry: false, 
+    retry: false
   });
 };
+
+export const useLogout = () => {
+  return useMutation({
+    mutationFn : logoutUser 
+  })
+}

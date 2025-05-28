@@ -10,6 +10,7 @@ const config = cloudinary.config({
 export const uploadFileToCloudinary = async (file: File, folderName: string , publicId : string) => {
     //read file bytes 
     const bytes = await file.arrayBuffer();
+    
     //convert to node js buffer         
     const buffer = Buffer.from(bytes);              
   
