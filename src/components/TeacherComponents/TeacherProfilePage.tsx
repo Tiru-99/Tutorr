@@ -5,7 +5,7 @@ import { useGetTeacherDetails } from "@/hooks/teacherProfileHooks";
 
 export default function TeacherProfilePage({id} : {id : string}) {
     const {data : teacher , isLoading , isError} = useGetTeacherDetails(id); 
-
+    console.log("The data isss" , teacher);
     if (isLoading) {
         return <div>Loading teacher Profile...</div>;
     }
@@ -49,8 +49,8 @@ export default function TeacherProfilePage({id} : {id : string}) {
 
                             {/* Interests/Tags */}
                             <div className="flex flex-row flex-wrap justify-center md:justify-start gap-1 mt-2">
-                                {teacher.interests?.length > 0 ? (
-                                    teacher.interests.map((interest: string, index: number) => (
+                                {teacher.expertise?.length > 0 ? (
+                                    teacher.expertise.map((interest: string, index: number) => (
                                         <div
                                             key={index}
                                             className="border border-gray-300 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm text-gray-700 rounded-full"
@@ -93,7 +93,7 @@ export default function TeacherProfilePage({id} : {id : string}) {
             <div className="md:px-16 pl-4 mt-4">
                 <h2 className="font-semibold text-md">About Me</h2>
                 <p className="text-sm text-gray-500 whitespace-normal break-words">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    {teacher.about}
                 </p>
             </div>
 

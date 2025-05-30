@@ -32,15 +32,15 @@ model Teacher {
   id                  String                @id @default(uuid())
   userId              String                @unique
   user                User                  @relation(fields: [userId], references: [id])
-  phoneNumber         String?
+  phone_number        String?
   name                String?
   company_name        String?
   highest_education   String?
-  years_of_exp        Int?
+  years_of_exp        String?
   about               String?
   license             String? //link of the pdf document
   expertise           String[]
-  session_duration    Int?
+  session_duration    String?
   start_time          String?
   end_time            String?
   available_days      String[]

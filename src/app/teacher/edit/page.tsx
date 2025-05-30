@@ -47,7 +47,7 @@ export default function Home(){
 
     return (
         <>
-            <TeacherEdit/>
+            <TeacherEdit userId={userId}/>
         </>
     )
 }
