@@ -10,10 +10,13 @@ export default function Login() {
     const { mutate, isPending, isSuccess, isError } = useLogin();
     const { data : isAuthenticated , isLoading} = useIsAuthenticated();
     const [errorMessage, setErrorMessage] = useState<string>(""); 
+    const [isTutor , setIsTutor] = useState<boolean>(false);
     const [data, setData] = useState({
         email: "",
         password: "",
+        type : "STUDENT"
     });
+
 
     useEffect(() => {
         if (!isLoading && isAuthenticated) {
@@ -56,7 +59,43 @@ export default function Login() {
                         <div>
                             <p className="font-semibold text-3xl text-left">Log In </p>
                             <p className="font-thin text-gray pb-2">Enter your credentials to access your account</p>
+                             {/* Toggle Bar */}
+                             <div className="h-10 w-60 rounded-full bg-gray-100 p-1 shadow-inner">
+                                <div className="flex w-full h-full relative">
+                                    {/* Active Option Background */}
+                                    <div
+                                        className={`absolute w-1/2 h-full bg-black rounded-full transition-all duration-300 ${isTutor ? 'left-0' : 'left-1/2'}`}
+                                    ></div>
 
+                                    {/* Options */}
+                                    <div className="flex w-full justify-between items-center z-10 relative">
+                                        <div
+                                            className={`w-1/2 text-center font-medium cursor-pointer ${isTutor ? 'text-white' : 'text-black'}`}
+                                            onClick={() => {
+                                                setIsTutor(true);
+                                                setData(prev => ({
+                                                    ...prev,
+                                                    type: "TEACHER"
+                                                }));
+                                            }}
+                                        >
+                                            Tutor
+                                        </div>
+                                        <div
+                                            className={`w-1/2 text-center font-medium cursor-pointer ${!isTutor ? 'text-white' : 'text-black'}`}
+                                            onClick={() => {
+                                                setIsTutor(false);
+                                                setData(prev => ({
+                                                    ...prev,
+                                                    type: "STUDENT"
+                                                }));
+                                            }}
+                                        >
+                                            Learner
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Email text box */}
                             <div className="flex flex-col space-y-2 pt-3">

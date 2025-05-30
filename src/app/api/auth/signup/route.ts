@@ -48,12 +48,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
             typeUser = await prisma.student.create({
                 data :{
                     userId : user.id ,
+                    name : name
                 }
             })
         } else {
             typeUser = await prisma.teacher.create({
                 data :{
-                    userId : user.id
+                    userId : user.id,
+                    name : name 
                 }
             })
         }

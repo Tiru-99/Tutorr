@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/prisma";
 import { uploadFileToCloudinary } from "@/utils/uploadFileToCloudinary";
+import { UploadStream } from "cloudinary";
 
 export async function POST(req: NextRequest) {
     const formData = await req.formData();
@@ -12,10 +13,12 @@ export async function POST(req: NextRequest) {
         license: formData.get("license") as File | null,
     };
 
+    console.log("the input files are" , files); 
+
     //extract fields with text data
     const fields = {
         name: formData.get("name") as string,
-        phoneNumber: formData.get("phoneNumber") as string,
+        phone_number: formData.get("phone_number") as string,
         company_name: formData.get("company_name") as string,
         highest_education: formData.get("highest_education") as string,
         years_of_exp: formData.get("years_of_exp") as string,
@@ -56,23 +59,46 @@ export async function POST(req: NextRequest) {
     }
 
     if(parsedAvailableDays && parsedAvailableDays.length > 0){
-        dataToUpdate.parsedAvailableDays = parsedAvailableDays
+        dataToUpdate.available_days = parsedAvailableDays
     }
 
 
-    // Upload files and update URLs
-    for (const [key, file] of Object.entries(files)) {
-        if (file) {
-            const folderMap: Record<string, string> = {
-                profile_pic: "tutor_teacher_profile_pic",
-                banner_pic: "tutor_teacher_banner_pic",
-                license: "tutor_teacher_license",
-            };
+    // Upload files and update URLs parallely
+    const folderMap: Record<string, string> = {
+        profile_pic: "tutor_teacher_profile_pic",
+        banner_pic: "tutor_teacher_banner_pic",
+        license: "tutor_teacher_license",
+    };
 
-            const fileUrl : any = await uploadFileToCloudinary(file, folderMap[key], existingUser.id);
-            dataToUpdate[key] = fileUrl.secure_url;
+    console.log("The folder map is" , folderMap); 
+    
+    const uploadPromises = Object.entries(files).map(async ([key, file]) => {
+        if (!file) return null;
+        const fileUrl: any = await uploadFileToCloudinary(file, folderMap[key], existingUser.id);
+        return { key, url: fileUrl.secure_url };
+    });
+    
+    try {
+        //upload all the incoming image in one go
+        const uploadResults = await Promise.all(uploadPromises);
+        console.log("The upload results are" , uploadResults);
+
+        if(uploadResults){
+            console.log("Coming into the upload result")
+            uploadResults.map((result) => {
+                if(result && result.url && result.key){
+                    console.log("Coming into the part 1");
+                    //append the updated key and url to dataToUpdate
+                    dataToUpdate[result.key] = result.url
+                }
+            });
         }
+    } catch (err) {
+        console.error('Upload error:', err);
+        return NextResponse.json({ error: 'Something went wrong while uploading files' }, { status: 500 });
     }
+    
+    console.log("The data to update is " , dataToUpdate)
 
     try {
         const updatedTeacher = await prisma.teacher.update({

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const banner_pic = formData.get("banner_pic") as File | null;
 
     const name = formData.get("name") as string;
-    const phone_number = formData.get("phone_number") as string;
+    const phoneNumber = formData.get("phone_number") as string;
     const email = formData.get("email") as string;
     const interests = formData.get("interests") as any ; 
     const parsedInterests = JSON.parse(interests);
@@ -41,18 +41,26 @@ export async function POST(req: NextRequest, res: NextResponse) {
         const folderName = profile_pic ? "tutor_student_profile_pic" : "tutor_student_banner_pic";
 
         if (fileToUpload) {
-            console.log("The file upload is " , fileToUpload);
-            const fileUrl: any = await uploadFileToCloudinary(fileToUpload, folderName, existingUser.id);
-            console.log("The file url is ", fileUrl);
-            if (fileToUpload === profile_pic) {
-                dataToupdate.profile_pic = fileUrl.secure_url
-            } else {
-                dataToupdate.banner_pic = fileUrl.secure_url
-            }
+           try {
+             
+             const fileUrl: any = await uploadFileToCloudinary(fileToUpload, folderName, existingUser.id);
+            
+             if (fileToUpload === profile_pic) {
+                 dataToupdate.profile_pic = fileUrl.secure_url
+             } else {
+                 dataToupdate.banner_pic = fileUrl.secure_url
+             }
+           } catch (error) {
+                console.log("Student file upload Error : " , error);
+                return NextResponse.json({
+                    message: "Something went wrong while updating the student file",
+                    error: error
+                });
+           }
         }
 
         if (name) dataToupdate.name = name;
-        if (phone_number) dataToupdate.phone_number = phone_number;
+        if (phoneNumber) dataToupdate.phoneNumber = phoneNumber;
         if(interests) dataToupdate.interests = parsedInterests;
 
 
@@ -63,7 +71,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             data: dataToupdate
         });
 
-        console.log("Successfully updated the student data !", student.id, student.userId);
+        console.log("Successfully updated the student data !", student);
         return NextResponse.json({
             message: "Student data updated", 
             data : student
