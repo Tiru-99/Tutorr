@@ -46,7 +46,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
     return (
         <>
             {/* for the context api */}
-            <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []}>
+            <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []} sessionDuration={teacher?.session_duration}>
                 <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-28">
                     <div className="lg:w-3/4 w-full">
                         <div className="border border-gray-300 ">
