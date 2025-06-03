@@ -100,7 +100,7 @@ model TeacherAvailability {
   teacher        Teacher  @relation(fields: [teacherId], references: [id])
   date           DateTime
   dayOfWeek      String
-  available_from String
-  available_to   String
+  available_days String[]
   isAvailable    Boolean
 }
+
