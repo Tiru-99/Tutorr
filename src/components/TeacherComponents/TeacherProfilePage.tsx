@@ -23,13 +23,18 @@ export default function TeacherProfilePage({ id }: { id: string }) {
             const slots: string[] = [];
 
             for (let i = start; i + dur <= end; i++) {
-                const startString = `${i.toString().padStart(2, "0")}:00`;
-                const endString = `${(i + dur).toString().padStart(2, "0")}:00`;
-                slots.push(`${startString}-${endString}`);
+                const hour24 = i;
+                const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+                const suffix = hour24 < 12 ? "AM" : "PM";
+                const formatted = `${hour12}:00 ${suffix}`;
+                slots.push(formatted);
             }
+
             setSessionSlots(slots);
         }
     }, [teacher]);
+
+
 
     if (isLoading) {
         return <div>Loading teacher Profile...</div>;
@@ -46,7 +51,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
     return (
         <>
             {/* for the context api */}
-            <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []} sessionDuration={teacher?.session_duration}>
+            <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []} sessionDuration={teacher?.session_duration} id={id}>
                 <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-28">
                     <div className="lg:w-3/4 w-full">
                         <div className="border border-gray-300 ">

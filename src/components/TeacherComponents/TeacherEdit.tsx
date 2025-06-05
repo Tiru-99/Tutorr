@@ -81,6 +81,20 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         end_time: teacher?.end_time || "",
         available_days: teacher?.available_days || ""
       });
+      if(teacher?.start_time){
+        const time = teacher?.start_time ; 
+        const hour = time.slice(0 , 2); 
+        const minute = time.slice(2 , 4); 
+        setStartTime({hour , minute});
+      }
+
+      if(teacher?.end_time){
+        const time = teacher?.end_time ; 
+        const hour = time.slice(0 , 2); 
+        const minute = time.slice(2 ,4); 
+        setEndTime({hour , minute});
+      }
+      
       if(teacher?.license) {
         setIncomingFiles((prev) => ({...prev , license : teacher.license})); 
       } 
@@ -114,7 +128,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const expertiseOptions = ["English", "Maths", "History", "I.T", "Development", "Geography"];
-  const days = ["MON", "TUES", "WED", "THU", "FRI", "SAT"]
+  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
   const toggleExpertise = (expertise: string) => {
     setSelectedExpertise((prev) =>

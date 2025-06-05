@@ -16,12 +16,26 @@ const saveAndUpdateTeacherProfile = async(formData : FormData) => {
     return response.data; 
 }
 
+const getTeacherAvailability = async ({ queryKey }: { queryKey: [string, { userId: string; date: string }] }) => {
+    const [ _ , { userId, date }] = queryKey;
+    const response = await axios.get(`/api/teacher/availability?userId=${userId}&date=${date}`);
+    return response.data;
+};
+
 export const useGetTeacherDetails = (id : string) => {
     return useQuery({
         queryKey : ["teacherProfile" , id] , 
         queryFn : getTeacherProfile ,
         enabled : !!id // only run when id is available
     });
+}
+
+export const useGetTeacherAvailability = (userId : string , date : string) => {
+    return useQuery({
+        queryKey : ["teacherAvailability" , {userId , date}], 
+        queryFn : getTeacherAvailability , 
+        enabled : !!userId && !!date
+    })
 }
 
 export const useSaveTeacherDetails = () => {
