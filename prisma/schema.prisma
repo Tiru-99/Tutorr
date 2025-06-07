@@ -120,10 +120,12 @@ model SlotDetails {
   sessionId             String?              @unique
   sessionDetails        Session?             @relation(fields: [sessionId], references: [id])
   @@unique([teacherId, slotTime])
+  @@unique([teacherAvailabilityId, slotTime]) 
 }
 
 enum StatusType {
   BOOKED
   AVAILABLE
   CANCELLED
+  UNAVAILABLE
 }

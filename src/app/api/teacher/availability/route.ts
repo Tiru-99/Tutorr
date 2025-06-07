@@ -5,10 +5,12 @@ import prisma from "@/utils/prisma";
 export async function POST(req: NextRequest) {
     const { userId, date, deletedSessionSlots, sessionSlots, dayOfWeek, isAvailable } = await req.json();
 
-    if (!userId || !date || !isAvailable) {
+    if (!userId || !date || isAvailable == undefined) {
         console.log("Incomplete details");
         return NextResponse.json({ error: "Incomplete details sent !" }, { status: 403 });
     }
+
+    console.log("the is available receiving is" , isAvailable); 
 
     try {
         const existingTeacher = await prisma.teacher.findFirst({
@@ -45,18 +47,31 @@ export async function POST(req: NextRequest) {
                 dayOfWeek,
             }
         });
+
+        console.log("The availability is", availability);
         //if is Avaialbility is false , no need of saving rest of the deails
-        if(isAvailable === false){
-            console.log("Is Available false" , isAvailable); 
-            return NextResponse.json({message : "Successfully saved the changes"} , {status : 200});
+        if (isAvailable === false) {
+            console.log("Is Available false", isAvailable);
+            return NextResponse.json({ message: "Successfully saved the changes" }, { status: 200 });
         }
 
         const teacherAvailabilityId = availability.id;
 
-        if(!sessionSlots || !deletedSessionSlots){
-            console.log("Session slots of deleted ones not found"); 
-            return NextResponse.json({error : "Missing session slots"} , {status : 403 });
+        if (!sessionSlots || !deletedSessionSlots) {
+            console.log("Session slots of deleted ones not found");
+            return NextResponse.json({ error: "Missing session slots" }, { status: 403 });
         }
+
+        //update the teacherAvailability id in the slotDetails 
+        const message = await prisma.slotDetails.updateMany({
+            where: {
+                teacherId: existingTeacher.id
+            },
+            data: {
+                teacherAvailabilityId
+            }
+        })
+        console.log("the message is ", message);
         //check if any deleted slots are already booked 
         //to get all the slots which are booked and are in deletedSessionSlots
         const bookedSlots = await prisma.slotDetails.findMany({
@@ -65,9 +80,9 @@ export async function POST(req: NextRequest) {
                 slotTime: {
                     in: deletedSessionSlots,
                 },
-                sessionDetails: {
+                sessionId: {
                     // Only consider slots that are actually booked
-                    NOT: undefined,
+                    not: null,
                 },
             },
         });
@@ -79,16 +94,32 @@ export async function POST(req: NextRequest) {
             }, { status: 409 });
         }
 
-        //delete slots
-        await prisma.slotDetails.deleteMany({
+        //delete slots || update slots
+        console.log("The deletedSession slots : ", deletedSessionSlots);
+        console.log("the teacher avail id is", teacherAvailabilityId);
+
+        const debug = await prisma.slotDetails.findMany({
+            where: {
+                teacherAvailabilityId
+            },
+        });
+        console.log("Matching slots before filter:", debug);
+
+        const deleted = await prisma.slotDetails.updateMany({
             where: {
                 teacherAvailabilityId,
                 slotTime: {
                     in: deletedSessionSlots
                 },
-                sessionDetails: undefined
+                sessionId: undefined, // no session assigned
+            },
+            data: {
+                status: "UNAVAILABLE", //set to unavailable
             }
         });
+
+        console.log("the deleted slots are ", deleted)
+
 
         return NextResponse.json({ message: "Data saved successfully !" }, { status: 200 })
     } catch (error) {
@@ -121,9 +152,17 @@ export async function GET(req: NextRequest) {
                 date: date,
             },
             include: {
-                SlotDetails: true,
+                SlotDetails: {
+                    where: {
+                        status: "AVAILABLE",
+                    },
+                    select :{
+                        slotTime : true
+                    }
+                },
             },
         });
+
 
         if (!availability) {
             console.log("Null availability!");

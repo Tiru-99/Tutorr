@@ -1,6 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from 'axios';
 
+interface DataToSend {
+    userId : string ;
+    date : string ; 
+    deletedSessionSlots : string[];
+    sessionSlots : string[]; 
+    dayOfWeek : string ; 
+    isAvailable : boolean; 
+}
+
 const getTeacherProfile = async({queryKey} : {queryKey : [string , string]}) => {
     const[_ , id] = queryKey ; 
     const response = await axios.get(`/api/profile/teacher?id=${id}`);
@@ -22,6 +31,14 @@ const getTeacherAvailability = async ({ queryKey }: { queryKey: [string, { userI
     return response.data;
 };
 
+const updateTeacherAvailability = async(dataToSend : DataToSend) => {
+    const response = await axios.post('/api/teacher/availability' , dataToSend , {
+        withCredentials : true
+    });
+
+    return response.data; 
+}
+
 export const useGetTeacherDetails = (id : string) => {
     return useQuery({
         queryKey : ["teacherProfile" , id] , 
@@ -34,7 +51,15 @@ export const useGetTeacherAvailability = (userId : string , date : string) => {
     return useQuery({
         queryKey : ["teacherAvailability" , {userId , date}], 
         queryFn : getTeacherAvailability , 
-        enabled : !!userId && !!date
+        enabled : !!userId && !!date ,
+        //no caching
+        staleTime : 0 , 
+    })
+}
+
+export const useUpdateTeacherAvailability = () => {
+    return useMutation({
+        mutationFn : updateTeacherAvailability
     })
 }
 
