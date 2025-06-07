@@ -12,9 +12,9 @@ interface ImageType {
 }
 
 interface FileLinks {
-  profile_pic : string ,
-  banner_pic : string,
-  license : string
+  profile_pic: string,
+  banner_pic: string,
+  license: string
 }
 interface TeacherData {
   name: string,
@@ -28,16 +28,17 @@ interface TeacherData {
   session_duration: string,
   start_time: string,
   end_time: string,
-  available_days: string[]
+  available_days: string[],
+  price : string
 }
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
   const { data: teacher, isError, isLoading } = useGetTeacherDetails(userId);
   const { mutate, isPending, isError: saveError } = useSaveTeacherDetails();
   const [incomingFiles, setIncomingFiles] = useState<FileLinks>({
-    profile_pic : "", 
-    banner_pic : "", 
-    license:""
+    profile_pic: "",
+    banner_pic: "",
+    license: ""
   })
   const [dataToSend, setDataToSend] = useState<TeacherData>({
     name: teacher?.name || "",
@@ -51,7 +52,8 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     session_duration: teacher?.session_duration || "",
     start_time: teacher?.start_time || "",
     end_time: teacher?.end_time || "",
-    available_days: teacher?.available_days || ""
+    available_days: teacher?.available_days || "",
+    price : teacher?.price || ""
   })
   const [files, setFiles] = useState<ImageType>({
     profile_pic: null,
@@ -79,32 +81,33 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         session_duration: teacher?.session_duration || "",
         start_time: teacher?.start_time || "",
         end_time: teacher?.end_time || "",
-        available_days: teacher?.available_days || ""
+        available_days: teacher?.available_days || "",
+        price : teacher?.price || ""
       });
-      if(teacher?.start_time){
-        const time = teacher?.start_time ; 
-        const hour = time.slice(0 , 2); 
-        const minute = time.slice(2 , 4); 
-        setStartTime({hour , minute});
+      if (teacher?.start_time) {
+        const time = teacher?.start_time;
+        const hour = time.slice(0, 2);
+        const minute = time.slice(2, 4);
+        setStartTime({ hour, minute });
       }
 
-      if(teacher?.end_time){
-        const time = teacher?.end_time ; 
-        const hour = time.slice(0 , 2); 
-        const minute = time.slice(2 ,4); 
-        setEndTime({hour , minute});
+      if (teacher?.end_time) {
+        const time = teacher?.end_time;
+        const hour = time.slice(0, 2);
+        const minute = time.slice(2, 4);
+        setEndTime({ hour, minute });
       }
-      
-      if(teacher?.license) {
-        setIncomingFiles((prev) => ({...prev , license : teacher.license})); 
-      } 
-      if(teacher?.profile_pic){
-        setIncomingFiles((prev) => ({...prev , profile_pic : teacher.profile_pic}));
+
+      if (teacher?.license) {
+        setIncomingFiles((prev) => ({ ...prev, license: teacher.license }));
       }
-      if(teacher?.banner_pic){
-        setIncomingFiles((prev)=> ({
-          ...prev , 
-          banner_pic : teacher.banner
+      if (teacher?.profile_pic) {
+        setIncomingFiles((prev) => ({ ...prev, profile_pic: teacher.profile_pic }));
+      }
+      if (teacher?.banner_pic) {
+        setIncomingFiles((prev) => ({
+          ...prev,
+          banner_pic: teacher.banner
         }))
       }
 
@@ -116,10 +119,10 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
           minute: teacher.startTime.slice(2, 4),
         });
       }
-      if(teacher?.endTime){
+      if (teacher?.endTime) {
         setStartTime({
-          hour:teacher.endTime.slice(0 , 2),
-          minute : teacher.endTime.slice(2,4)
+          hour: teacher.endTime.slice(0, 2),
+          minute: teacher.endTime.slice(2, 4)
         })
       }
     }
@@ -236,9 +239,9 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       return;
     }
 
-    if(selectedDays.length === 0 ){
+    if (selectedDays.length === 0) {
       alert("Please choose Avaiable days");
-      return ; 
+      return;
     }
 
     const finalDataToSend: TeacherData =
@@ -251,7 +254,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       session_duration: sessionTime
     }
 
-    console.log("final data to send is" , finalDataToSend);
+    console.log("final data to send is", finalDataToSend);
 
     const formData = new FormData();
     //do formAppend logically instead of writing each line manually
@@ -420,6 +423,18 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name your price</label>
+                  <input
+                    type="number"
+                    placeholder="Enter price in USD"
+                    value={dataToSend.price}
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs"
+                    onChange={(e) => setDataToSend((prev)=> ({...prev , price : e.target.value}))}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
 
                 {/* Upload License */}
                 <div>
@@ -447,21 +462,21 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                       </div>
                     ) : (
                       <>
-                      {incomingFiles.license ? (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Uploaded License:</p>
-                          <p className="text-sm text-gray-500">{incomingFiles.license.slice(0,20)}..</p>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">
-                            Upload License (Format: PDF, PNG, JPG)
-                          </p>
-                        </>
-                      )}
-                    </>
-                    
+                        {incomingFiles.license ? (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Uploaded License:</p>
+                            <p className="text-sm text-gray-500">{incomingFiles.license.slice(0, 20)}..</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">
+                              Upload License (Format: PDF, PNG, JPG)
+                            </p>
+                          </>
+                        )}
+                      </>
+
                     )}
                   </div>
                 </div>

@@ -157,12 +157,12 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
                     {/* Show LicenseComponent on all except md (tablet) */}
                     <div className="block md:hidden lg:block">
-                        <LicenseComponent />
+                        <LicenseComponent price = {teacher.price}/>
                     </div>
 
                     {/* Show TabletLicenseComponent only on md (tablet) screens */}
                     <div className="hidden md:block lg:hidden">
-                        <TabletLicenseComponent />
+                        <TabletLicenseComponent price = {teacher.price} />
                     </div>
                 </div>
             </TeacherProvider>

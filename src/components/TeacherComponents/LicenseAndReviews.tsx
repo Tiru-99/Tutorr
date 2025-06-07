@@ -25,7 +25,7 @@ const reviews = [
     },
 ]
 
-export default function LicenseComponent() {
+export default function LicenseComponent({price} : {price : string}) {
     return (
         <Card className="max-w-sm mx-auto bg-white border-2 border-gray-200">
             <CardContent className="p-6">
@@ -76,12 +76,12 @@ export default function LicenseComponent() {
                 <div className="w-full border border-gray-300 rounded-md mt-5 shadow-sm">
                     <div className="py-3 px-3">
                         <h3 className="text-gray-600 text-md font-medium">Price</h3>
-                        <h1 className="font-bold text-green-600 text-2xl mt-2">AED 240 / <span className="text-2xl text-gray-500 font-medium">Session</span></h1>
+                        <h1 className="font-bold text-green-600 text-2xl mt-2">{price} $ / <span className="text-2xl text-gray-500 font-medium">Session</span></h1>
                     </div>
                 </div>
 
                 <Button className="w-full text-blue-500 border border-blue-500 bg-white hover:bg-blue-50 mt-7 rounded-full">View License</Button>
-                <Button className="w-full text-red-500 border border-red-500 bg-white hover:bg-red-50 mt-3 rounded-full">View License</Button>
+                <Button className="w-full text-red-500 border border-red-500 bg-white hover:bg-red-50 mt-3 rounded-full">Delete License</Button>
             </CardContent>
         </Card>
 

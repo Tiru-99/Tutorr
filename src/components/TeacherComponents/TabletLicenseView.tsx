@@ -23,7 +23,7 @@ const reviews = [
   },
 ]
 
-export default function TabletLicenseComponent() {
+export default function TabletLicenseComponent({price} : {price : string}) {
   return (
     <Card className="max-w-5xl mx-auto bg-white border-2 border-gray-200 shadow-lg">
       <CardContent className="p-6">
@@ -88,7 +88,7 @@ export default function TabletLicenseComponent() {
                 <div className="mb-6">
                   <h3 className="text-gray-600 font-medium mb-4 text-lg">Price</h3>
                   <div className="text-3xl font-bold mb-6">
-                    <div className="text-green-600">AED 240</div>
+                    <div className="text-green-600">{price} $</div>
                     <div className="text-gray-500 font-normal text-lg">/ Session</div>
                   </div>
                 </div>
