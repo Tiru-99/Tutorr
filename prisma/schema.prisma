@@ -99,7 +99,7 @@ model TeacherAvailability {
   id          String        @id @default(uuid())
   teacherId   String
   teacher     Teacher       @relation(fields: [teacherId], references: [id])
-  date        DateTime?
+  date        String?
   dayOfWeek   String?
   isAvailable Boolean?
   SlotDetails SlotDetails[]

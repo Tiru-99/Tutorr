@@ -30,9 +30,9 @@ export default function EditDialog() {
 
     //colaescing variables
     const userId = context?.id ?? '';
-    const dateToSend = date?.toISOString() ?? '';
+    const dateToSend = date?.toISOString().split("T")[0] ?? '';
     const dayOfWeek = date?.toString().slice(0, 3).toUpperCase();
-
+    console.log("the date to send is" , dateToSend); 
     //api
     const { data: availability, isLoading, isError, refetch } = useGetTeacherAvailability(userId, dateToSend);
     const { mutate, isPending, isError: submitError } = useUpdateTeacherAvailability();
@@ -49,7 +49,7 @@ export default function EditDialog() {
         }
     }, [availability]);
 
-    console.log("the date is", date);
+
 
     useEffect(() => {
         if (!context || !date) return;
