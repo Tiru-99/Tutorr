@@ -52,6 +52,8 @@ model Teacher {
   teacher_review      TeacherReview[]
   session             Session[]
   TeacherAvailability TeacherAvailability[]
+  //Template slots
+  SessionDetails      SlotDetails[]
 }
 
 model Student {
@@ -71,22 +73,21 @@ model TeacherReview {
   id        String  @id @default(uuid())
   teacherId String
   teacher   Teacher @relation(fields: [teacherId], references: [id])
-
   studentId String
   student   Student @relation(fields: [studentId], references: [id])
-
-  comment String?
-  rating  Int
+  comment   String?
+  rating    Int
 }
 
 model Session {
-  id              String   @id @default(uuid())
+  id              String       @id @default(uuid())
   teacherId       String
-  teacher         Teacher  @relation(fields: [teacherId], references: [id])
+  teacher         Teacher      @relation(fields: [teacherId], references: [id])
   studentId       String
-  student         Student  @relation(fields: [studentId], references: [id])
+  student         Student      @relation(fields: [studentId], references: [id])
   time_of_meeting DateTime
   meeting_url     String?
+  slotDetails     SlotDetails?
 }
 
 enum SessionStatus {
@@ -95,12 +96,36 @@ enum SessionStatus {
 }
 
 model TeacherAvailability {
-  id             String   @id @default(uuid())
-  teacherId      String
-  teacher        Teacher  @relation(fields: [teacherId], references: [id])
-  date           DateTime
-  dayOfWeek      String
-  available_from String
-  available_to   String
-  isAvailable    Boolean
+  id          String        @id @default(uuid())
+  teacherId   String
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  date        String?
+  dayOfWeek   String?
+  isAvailable Boolean?
+  SlotDetails SlotDetails[]
+
+  @@unique([teacherId, date])
+}
+
+model SlotDetails {
+  id                    String               @id @default(uuid())
+  //Direct teacher relationship for (default / template) slots
+  teacherId             String?
+  teacher               Teacher?             @relation(fields: [teacherId], references: [id])
+  //for availability relationship (for data specific slots)
+  teacherAvailabilityId String?
+  availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id])
+  status                StatusType           @default(AVAILABLE)
+  slotTime              String?
+  sessionId             String?              @unique
+  sessionDetails        Session?             @relation(fields: [sessionId], references: [id])
+  @@unique([teacherId, slotTime])
+  @@unique([teacherAvailabilityId, slotTime]) 
+}
+
+enum StatusType {
+  BOOKED
+  AVAILABLE
+  CANCELLED
+  UNAVAILABLE
 }

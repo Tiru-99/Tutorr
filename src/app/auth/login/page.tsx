@@ -27,7 +27,12 @@ export default function Login() {
     console.log(data);
 
     const handleSubmit = () => {
-        
+
+        if(!data.email || !data.password){
+            alert("Incomplete details!");
+            return; 
+        }
+
         setErrorMessage(""); // clear error if any
         mutate(data, {
             onSuccess: () => {
@@ -101,6 +106,7 @@ export default function Login() {
                             <div className="flex flex-col space-y-2 pt-3">
                                 <label htmlFor="email" className="text-sm font-medium text-gray-700">Email</label>
                                 <input
+                                    required
                                     type="email"
                                     id="email"
                                     placeholder="Enter your email"
@@ -113,6 +119,7 @@ export default function Login() {
                             <div className="flex flex-col space-y-2 pt-3">
                                 <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
                                 <input
+                                    required
                                     type="password"
                                     id="password"
                                     placeholder="Enter your password"

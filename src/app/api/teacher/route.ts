@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/prisma";
 import { uploadFileToCloudinary } from "@/utils/uploadFileToCloudinary";
-import { UploadStream } from "cloudinary";
+import { generateSlots } from "@/utils/utilityFunctions";
+
 
 export async function POST(req: NextRequest) {
     const formData = await req.formData();
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
         license: formData.get("license") as File | null,
     };
 
-    console.log("the input files are" , files); 
+    console.log("the input files are", files);
 
     //extract fields with text data
     const fields = {
@@ -26,17 +27,18 @@ export async function POST(req: NextRequest) {
         session_duration: formData.get("session_duration") as string,
         start_time: formData.get("start_time") as string,
         end_time: formData.get("end_time") as string,
-        price : formData.get("price") as string
+        price: formData.get("price") as string
     };
 
-    const email = formData.get("email") as string ; 
+    const email = formData.get("email") as string;
 
     let parsedExpertise = [];
     let parsedAvailableDays = [];
+    const sessionSlots = generateSlots(fields.start_time, fields.end_time, fields.session_duration);
 
     try {
         //parsing the incoming string data into array of strings 
-        parsedExpertise = JSON.parse(formData.get("expertise") as string );
+        parsedExpertise = JSON.parse(formData.get("expertise") as string);
         parsedAvailableDays = JSON.parse(formData.get("available_days") as string);
     } catch (err) {
         return NextResponse.json({ message: "Invalid JSON in expertise or available_days" }, { status: 400 });
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
         dataToUpdate.expertise = parsedExpertise;
     }
 
-    if(parsedAvailableDays && parsedAvailableDays.length > 0){
+    if (parsedAvailableDays && parsedAvailableDays.length > 0) {
         dataToUpdate.available_days = parsedAvailableDays
     }
 
@@ -70,23 +72,23 @@ export async function POST(req: NextRequest) {
         license: "tutor_teacher_license",
     };
 
-    console.log("The folder map is" , folderMap); 
-    
+    console.log("The folder map is", folderMap);
+
     const uploadPromises = Object.entries(files).map(async ([key, file]) => {
         if (!file) return null;
         const fileUrl: any = await uploadFileToCloudinary(file, folderMap[key], existingUser.id);
         return { key, url: fileUrl.secure_url };
     });
-    
+
     try {
         //upload all the incoming image in one go
         const uploadResults = await Promise.all(uploadPromises);
-        console.log("The upload results are" , uploadResults);
+        console.log("The upload results are", uploadResults);
 
-        if(uploadResults){
+        if (uploadResults) {
             console.log("Coming into the upload result")
             uploadResults.map((result) => {
-                if(result && result.url && result.key){
+                if (result && result.url && result.key) {
                     console.log("Coming into the part 1");
                     //append the updated key and url to dataToUpdate
                     dataToUpdate[result.key] = result.url
@@ -97,8 +99,8 @@ export async function POST(req: NextRequest) {
         console.error('Upload error:', err);
         return NextResponse.json({ error: 'Something went wrong while uploading files' }, { status: 500 });
     }
-    
-    console.log("The data to update is " , dataToUpdate)
+
+    console.log("The data to update is ", dataToUpdate)
 
     try {
         const updatedTeacher = await prisma.teacher.update({
@@ -106,9 +108,34 @@ export async function POST(req: NextRequest) {
             data: dataToUpdate,
         });
 
+        const teacherId = updatedTeacher.id;
+        //create default slot values ; 
+        const upsertPromises = sessionSlots.map(slot => {
+            return prisma.slotDetails.upsert({
+                where: {
+                    teacherId_slotTime: {
+                        teacherId,
+                        slotTime: slot, // assuming slotTime is a property on your slot object
+                    },
+                },
+                update: {
+                    status: "AVAILABLE",
+                },
+                create: {
+                    teacherId,
+                    slotTime: slot,
+                    status: "AVAILABLE",
+                },
+            });
+        });
+
+        const results = await Promise.all(upsertPromises);
+        console.log("The results are :" , results); 
+
         return NextResponse.json({
             message: "Teacher profile updated successfully",
             data: updatedTeacher,
+            slots : results 
         });
     } catch (error) {
         console.error("Error updating teacher:", error);
