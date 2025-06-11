@@ -45,7 +45,18 @@ export async function POST(req: NextRequest) {
     }
 
     const existingUser = await prisma.teacher.findFirst({
-        where: { user: { email: email } },
+        where: {
+            user: {
+                email: email,
+            },
+        },
+        select: {
+            id: true,
+            start_time: true,
+            end_time: true,
+            TeacherAvailability: true,
+            TemplateSlots: true,
+        },
     });
 
     if (!existingUser) {
@@ -100,7 +111,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Something went wrong while uploading files' }, { status: 500 });
     }
 
-    console.log("The data to update is ", dataToUpdate)
+    console.log("The data to update is ", dataToUpdate);
+    console.log("The time  is ", existingUser.TeacherAvailability);
+
+    //slot details uda do 
+    //teacher avaialbiltty uda do 
+
+   
 
     try {
         const updatedTeacher = await prisma.teacher.update({
@@ -108,34 +125,67 @@ export async function POST(req: NextRequest) {
             data: dataToUpdate,
         });
 
-        const teacherId = updatedTeacher.id;
-        //create default slot values ; 
-        const upsertPromises = sessionSlots.map(slot => {
-            return prisma.slotDetails.upsert({
-                where: {
-                    teacherId_slotTime: {
-                        teacherId,
-                        slotTime: slot, // assuming slotTime is a property on your slot object
-                    },
-                },
-                update: {
-                    status: "AVAILABLE",
-                },
-                create: {
-                    teacherId,
-                    slotTime: slot,
-                    status: "AVAILABLE",
-                },
-            });
-        });
+        let slots ; 
 
-        const results = await Promise.all(upsertPromises);
-        console.log("The results are :" , results); 
+        if (!(existingUser.start_time == fields.start_time && existingUser.end_time === fields.end_time)) {
+                console.log("Coming into the option case" , existingUser.TemplateSlots);
+                if (existingUser.TemplateSlots.length > 0) {
+                    const deletedTemplateSlots = await prisma.templateSlots.deleteMany({
+                        where: {
+                            teacherId: existingUser.id
+                        }
+                    });
+                }
+    
+                if (existingUser.TeacherAvailability.length > 0) {
+
+                    const availabilityIds = existingUser.TeacherAvailability.map((avail) => {
+                        return avail.id
+                    });
+
+                    const idsToDelete = [] ;
+                    //check if there is some session booking with the teacher Availability id 
+                    for( const avail of availabilityIds){
+                        const booked = await prisma.slotDetails.findFirst({
+                            where : {
+                                teacherAvailabilityId : avail , 
+                                sessionId :{
+                                    not : null
+                                }
+                            }
+                        });
+
+                        if( !booked ){
+                            idsToDelete.push(avail); 
+                        }
+                    }
+
+                    const deletedAvailabilities = await prisma.teacherAvailability.deleteMany({
+                        where: {
+                            id: {
+                                in: idsToDelete 
+                            }
+                        }
+                    });
+                }
+                //create templateSlots for the teacher 
+                const createPromises = sessionSlots.map((slot) => {
+                    return prisma.templateSlots.create({
+                        data: {
+                            teacherId: existingUser.id,
+                            slotTime: slot,
+                            status: "AVAILABLE"
+                        }
+                    })
+                });
+    
+             slots = await Promise.all(createPromises);
+        }
 
         return NextResponse.json({
             message: "Teacher profile updated successfully",
             data: updatedTeacher,
-            slots : results 
+            results : slots
         });
     } catch (error) {
         console.error("Error updating teacher:", error);

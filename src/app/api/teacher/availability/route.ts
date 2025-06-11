@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/prisma";
+import { StatusType } from "@prisma/client";
 
 //route to save specific changes to the availability w.r.t each day
 export async function POST(req: NextRequest) {
@@ -10,13 +11,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Incomplete details sent !" }, { status: 403 });
     }
 
-    console.log("the is available receiving is" , isAvailable); 
+    console.log("the is available receiving is", isAvailable);
 
     try {
         const existingTeacher = await prisma.teacher.findFirst({
             where: {
                 user: {
                     id: userId
+                }
+            },
+            include: {
+                TeacherAvailability: {
+                    include: {
+                        SlotDetails: true
+                    }
                 }
             }
         });
@@ -27,26 +35,29 @@ export async function POST(req: NextRequest) {
         }
 
         const teacherId = existingTeacher.id;
-
-        //if exists update , if doesn't exist , create --- as simple as that!!
-        const availability = await prisma.teacherAvailability.upsert({
+        //find the existing availability 
+        const availability = await prisma.teacherAvailability.findUnique({
             where: {
                 teacherId_date: {
                     teacherId,
-                    date: date,
+                    date,
                 },
             },
-            update: {
-                isAvailable,
-                dayOfWeek,
-            },
-            create: {
-                teacherId,
-                date: date,
-                isAvailable,
-                dayOfWeek,
-            }
         });
+
+        let newAvailability; 
+
+        if (!availability) {
+            newAvailability = await prisma.teacherAvailability.create({
+                data: {
+                    teacherId,
+                    date,
+                    isAvailable,
+                    dayOfWeek,
+                },
+            });
+        }
+
 
         console.log("The availability is", availability);
         //if is Avaialbility is false , no need of saving rest of the deails
@@ -55,7 +66,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Successfully saved the changes" }, { status: 200 });
         }
 
-        const teacherAvailabilityId = availability.id;
+        const teacherAvailabilityId = availability ? availability.id : newAvailability?.id ;
 
         if (!sessionSlots || !deletedSessionSlots) {
             console.log("Session slots of deleted ones not found");
@@ -98,27 +109,36 @@ export async function POST(req: NextRequest) {
         console.log("The deletedSession slots : ", deletedSessionSlots);
         console.log("the teacher avail id is", teacherAvailabilityId);
 
-        const debug = await prisma.slotDetails.findMany({
+        //fetch the template slots 
+        const templateSlots = await prisma.templateSlots.findMany({
             where: {
-                teacherAvailabilityId
-            },
-        });
-        console.log("Matching slots before filter:", debug);
-
-        const deleted = await prisma.slotDetails.updateMany({
-            where: {
-                teacherAvailabilityId,
-                slotTime: {
-                    in: deletedSessionSlots
-                },
-                sessionId: undefined, // no session assigned
-            },
-            data: {
-                status: "UNAVAILABLE", //set to unavailable
+                teacherId: existingTeacher.id
             }
         });
 
-        console.log("the deleted slots are ", deleted)
+        const updateSlots = templateSlots.map((slot) => {
+            if (deletedSessionSlots.includes(slot.slotTime)) { // Assuming you want to compare by ID
+                return { ...slot, status: "UNAVAILABLE" };
+            }
+            return slot; // Return the original slot if not in deleted list
+        }).filter(slot => slot != null); // Filter out any null/undefined values
+
+        console.log("The updated slots are ", updateSlots);
+        console.log("The teacher Availability Id is" , teacherAvailabilityId);
+        const createPromises = updateSlots.map(slot =>
+            prisma.slotDetails.create({
+              data: {
+                teacherAvailabilityId,
+                slotTime: slot.slotTime,
+                status: slot.status as StatusType,
+              },
+            })
+          );
+
+        const created = await Promise.all(createPromises);
+
+
+        console.log("the deleted slots are", created);
 
 
         return NextResponse.json({ message: "Data saved successfully !" }, { status: 200 })
@@ -156,8 +176,8 @@ export async function GET(req: NextRequest) {
                     where: {
                         status: "AVAILABLE",
                     },
-                    select :{
-                        slotTime : true
+                    select: {
+                        slotTime: true
                     }
                 },
             },

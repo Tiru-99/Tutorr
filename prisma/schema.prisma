@@ -54,6 +54,7 @@ model Teacher {
   TeacherAvailability TeacherAvailability[]
   //Template slots
   SessionDetails      SlotDetails[]
+  TemplateSlots       TemplateSlots[]
 }
 
 model Student {
@@ -95,6 +96,14 @@ enum SessionStatus {
   COMPLETED
 }
 
+model TemplateSlots {
+  id        String     @id @default(uuid())
+  teacherId String
+  teacher   Teacher    @relation(fields: [teacherId], references: [id])
+  slotTime  String
+  status    StatusType
+}
+
 model TeacherAvailability {
   id          String        @id @default(uuid())
   teacherId   String
@@ -114,13 +123,14 @@ model SlotDetails {
   teacher               Teacher?             @relation(fields: [teacherId], references: [id])
   //for availability relationship (for data specific slots)
   teacherAvailabilityId String?
-  availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id])
+  availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id], onDelete: Cascade)
   status                StatusType           @default(AVAILABLE)
   slotTime              String?
   sessionId             String?              @unique
   sessionDetails        Session?             @relation(fields: [sessionId], references: [id])
+
   @@unique([teacherId, slotTime])
-  @@unique([teacherAvailabilityId, slotTime]) 
+  @@unique([teacherAvailabilityId, slotTime])
 }
 
 enum StatusType {
