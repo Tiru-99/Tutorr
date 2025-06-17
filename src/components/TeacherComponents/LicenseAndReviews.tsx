@@ -25,7 +25,7 @@ const reviews = [
     },
 ]
 
-export default function LicenseComponent({price} : {price : string}) {
+export default function LicenseComponent({price} : {price : number}) {
     return (
         <Card className="max-w-sm mx-auto bg-white border-2 border-gray-200">
             <CardContent className="p-6">

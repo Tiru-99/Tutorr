@@ -47,7 +47,7 @@ model Teacher {
   subject             String?
   profile_pic         String?
   banner_pic          String?
-  price               String?
+  price               Int? 
   average_rating      String?
   teacher_review      TeacherReview[]
   session             Session[]

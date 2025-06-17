@@ -60,7 +60,7 @@ export default function Component() {
 
     console.log("the data to send is", dataToSend);
 
-    mutate(dataToSend);
+    // mutate(dataToSend);
   }
 
   useEffect(() => {

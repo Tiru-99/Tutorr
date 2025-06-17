@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     console.log("the input files are", files);
 
     //extract fields with text data
+    const price = parseInt(formData.get("price") as string, 10);
     const fields = {
         name: formData.get("name") as string,
         phone_number: formData.get("phone_number") as string,
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
         session_duration: formData.get("session_duration") as string,
         start_time: formData.get("start_time") as string,
         end_time: formData.get("end_time") as string,
-        price: formData.get("price") as string
+        price: price
     };
 
     const email = formData.get("email") as string;
@@ -190,5 +191,24 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Error updating teacher:", error);
         return NextResponse.json({ message: "Internal server error", error }, { status: 500 });
+    }
+}
+
+//route to get all the teachers 
+export async function GET(req : NextRequest){
+
+    try {
+        const teachers = await prisma.teacher.findMany();
+    
+        if(teachers.length <= 0 ){
+            console.log("No teacher available"); 
+            return NextResponse.json({ message : "No teachers found"} , {status : 400}); 
+        }
+    
+        return NextResponse.json({teachers}, {status : 200}); 
+    
+    } catch (error) {
+        console.log("Something went wrong");
+        return NextResponse.json({error : "Internal Server Error"} , { status : 500}); 
     }
 }

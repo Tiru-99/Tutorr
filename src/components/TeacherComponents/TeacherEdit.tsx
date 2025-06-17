@@ -29,7 +29,7 @@ interface TeacherData {
   start_time: string,
   end_time: string,
   available_days: string[],
-  price : string
+  price : number
 }
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
@@ -53,7 +53,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     start_time: teacher?.start_time || "",
     end_time: teacher?.end_time || "",
     available_days: teacher?.available_days || "",
-    price : teacher?.price || ""
+    price : teacher?.price || null
   })
   const [files, setFiles] = useState<ImageType>({
     profile_pic: null,
@@ -82,7 +82,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         start_time: teacher?.start_time || "",
         end_time: teacher?.end_time || "",
         available_days: teacher?.available_days || "",
-        price : teacher?.price || ""
+        price : teacher?.price || null
       });
       if (teacher?.start_time) {
         const time = teacher?.start_time;
@@ -430,9 +430,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     placeholder="Enter price in USD"
                     value={dataToSend.price}
                     className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs"
-                    onChange={(e) => setDataToSend((prev)=> ({...prev , price : e.target.value}))}
-                    min="0"
-                    step="0.01"
+                    onChange={(e) => setDataToSend((prev)=> ({...prev , price : Number(e.target.value)}))}
                   />
                 </div>
 
