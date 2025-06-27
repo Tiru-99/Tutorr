@@ -1,6 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import { useContext, useState, useEffect, use } from "react";
+import { DateTime } from "luxon";
+import { useContext, useState, useEffect } from "react";
 import { TeacherContext } from "@/context/TeacherContext";
 import {
     Dialog,
@@ -16,6 +17,7 @@ import { Label } from "../ui/label";
 import { useGetTeacherAvailability } from "@/hooks/teacherProfileHooks";
 import { useUpdateTeacherAvailability } from "@/hooks/teacherProfileHooks";
 import { Loader } from "lucide-react";
+import { convertSessionSlotsToUTC } from "@/utils/utilityFunctions";
 
 
 export default function EditDialog() {
@@ -32,7 +34,7 @@ export default function EditDialog() {
     const userId = context?.id ?? '';
     const dateToSend = date?.toISOString().split("T")[0] ?? '';
     const dayOfWeek = date?.toString().slice(0, 3).toUpperCase();
-    console.log("the date to send is" , dateToSend); 
+    console.log("the date to send is", dateToSend);
     //api
     const { data: availability, isLoading, isError, refetch } = useGetTeacherAvailability(userId, dateToSend);
     const { mutate, isPending, isError: submitError } = useUpdateTeacherAvailability();
@@ -42,12 +44,21 @@ export default function EditDialog() {
     useEffect(() => {
         if (availability?.data?.SlotDetails && availability?.data?.isAvailable != null) {
             const slots = availability.data.SlotDetails
-                .map((slot: { slotTime: string | null }) => slot.slotTime)
-                .filter((slotTime: string): slotTime is string => slotTime !== null); // filter out nulls if any
+                .map((slot: { slotTime: string | null }) => {
+                    if (!slot.slotTime) return null;
+
+                    const dt = DateTime.fromISO(slot.slotTime, { zone: 'utc' }).toLocal();
+                    return dt.toFormat("h:mm a");
+                })
+                .filter((slotTime: string | null): slotTime is string => slotTime !== null); // ✅ Explicit typing
+
             setIsYes(availability.data.isAvailable);
             setSessionSlots(slots);
         }
     }, [availability]);
+
+
+
 
 
 
@@ -89,11 +100,14 @@ export default function EditDialog() {
             return null;
         }
 
+        const sessionSlotsUTC = convertSessionSlotsToUTC(sessionSlots, dateToSend);
+        const deletedSessionSlotsUTC = convertSessionSlotsToUTC(deletedSessionSlots, dateToSend);
+
         const dataToSend = {
             userId,
             date: dateToSend,
-            deletedSessionSlots,
-            sessionSlots,
+            deletedSessionSlots: deletedSessionSlotsUTC,
+            sessionSlots: sessionSlotsUTC,
             dayOfWeek,
             isAvailable: isYes
         };
@@ -145,7 +159,7 @@ export default function EditDialog() {
                             {isLoading ? (
                                 // Render loader if isLoading is true
                                 <div className="flex justify-center items-center h-40">
-                                    <Loader /> 
+                                    <Loader />
                                 </div>
                             ) : (
                                 // Else render the rest of your component

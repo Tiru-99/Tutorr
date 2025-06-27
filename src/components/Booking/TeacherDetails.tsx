@@ -13,28 +13,8 @@ export default function TeacherDetails() {
     const params = useParams(); 
     const id = params.id as string; 
     const { data: teacher, isLoading, isError } = useGetTeacherById(id! as string);
-    const [sessionSlots, setSessionSlots] = useState<string[]>([]);
     console.log("The data isss", teacher);
 
-    //function to generate time slots
-    useEffect(() => {
-        if (teacher?.start_time && teacher?.end_time && teacher?.session_duration) {
-            const start = parseInt(teacher.start_time.slice(0, 2), 10);
-            const end = parseInt(teacher.end_time.slice(0, 2), 10);
-            const dur = parseInt(teacher.session_duration, 10);
-            const slots: string[] = [];
-
-            for (let i = start; i + dur <= end; i++) {
-                const hour24 = i;
-                const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-                const suffix = hour24 < 12 ? "AM" : "PM";
-                const formatted = `${hour12}:00 ${suffix}`;
-                slots.push(formatted);
-            }
-
-            setSessionSlots(slots);
-        }
-    }, [teacher]);
     
 
 

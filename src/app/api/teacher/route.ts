@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/prisma";
 import { uploadFileToCloudinary } from "@/utils/uploadFileToCloudinary";
-import { generateSlots } from "@/utils/utilityFunctions";
+import { generateTimeOnlyUTCSlots } from "@/utils/utilityFunctions";
 
 
 export async function POST(req: NextRequest) {
@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
 
     let parsedExpertise = [];
     let parsedAvailableDays = [];
-    const sessionSlots = generateSlots(fields.start_time, fields.end_time, fields.session_duration);
+    console.log("The times are " ,fields.start_time , fields.end_time , fields.session_duration)
+    const sessionSlots = generateTimeOnlyUTCSlots(fields.start_time, fields.end_time, fields.session_duration);
 
     try {
         //parsing the incoming string data into array of strings 
@@ -181,6 +182,7 @@ export async function POST(req: NextRequest) {
                 });
     
              slots = await Promise.all(createPromises);
+             console.log("the slots which are created are " , slots); 
         }
 
         return NextResponse.json({

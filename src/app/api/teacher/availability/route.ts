@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/prisma";
 import { StatusType } from "@prisma/client";
+import { isSameTime } from "@/utils/utilityFunctions";
 
 //route to save specific changes to the availability w.r.t each day
 export async function POST(req: NextRequest) {
@@ -29,6 +30,8 @@ export async function POST(req: NextRequest) {
             }
         });
 
+        console.log("The existing teacher is ", existingTeacher);
+
         if (!existingTeacher) {
             console.log("Teacher does not exists!");
             return NextResponse.json({ error: "Teacher does not exists" }, { status: 405 });
@@ -45,7 +48,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        let newAvailability; 
+        let newAvailability;
 
         if (!availability) {
             newAvailability = await prisma.teacherAvailability.create({
@@ -66,7 +69,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Successfully saved the changes" }, { status: 200 });
         }
 
-        const teacherAvailabilityId = availability ? availability.id : newAvailability?.id ;
+        const teacherAvailabilityId = availability ? availability.id : newAvailability?.id;
 
         if (!sessionSlots || !deletedSessionSlots) {
             console.log("Session slots of deleted ones not found");
@@ -115,33 +118,93 @@ export async function POST(req: NextRequest) {
                 teacherId: existingTeacher.id
             }
         });
+        console.log("the template slots are ", templateSlots);
 
-        const updateSlots = templateSlots.map((slot) => {
-            if (deletedSessionSlots.includes(slot.slotTime)) { // Assuming you want to compare by ID
-                return { ...slot, status: "UNAVAILABLE" };
+        //fetch existing slots 
+        const existingSlots = await prisma.slotDetails.findMany({
+            where: {
+                teacherAvailabilityId
             }
-            return slot; // Return the original slot if not in deleted list
-        }).filter(slot => slot != null); // Filter out any null/undefined values
+        });
 
-        console.log("The updated slots are ", updateSlots);
-        console.log("The teacher Availability Id is" , teacherAvailabilityId);
-        const createPromises = updateSlots.map(slot =>
-            prisma.slotDetails.create({
-              data: {
-                teacherAvailabilityId,
-                slotTime: slot.slotTime,
-                status: slot.status as StatusType,
-              },
-            })
-          );
+        console.log("The existing slots are ", existingSlots);
+        //if there is not slotDetails table for the availability 
+        if (existingSlots.length === 0) {
+            //create the slots based on the session slots 
 
-        const created = await Promise.all(createPromises);
+            const updatedSlots = templateSlots.map((slot, index) => {
+                const updatedSlotTime = sessionSlots[index];
+
+                // If there's no matching session time, mark it unavailable
+                if (!updatedSlotTime) {
+                    return {
+                        ...slot,
+                        status: "UNAVAILABLE",
+                    };
+                }
+
+                // Check if the slot is marked as deleted
+                const isDeleted = deletedSessionSlots.includes(updatedSlotTime);
+
+                return {
+                    ...slot,
+                    slotTime: updatedSlotTime,
+                    status: isDeleted ? "UNAVAILABLE" : slot.status,
+                };
+            });
 
 
-        console.log("the deleted slots are", created);
 
 
-        return NextResponse.json({ message: "Data saved successfully !" }, { status: 200 })
+            console.log("The updated slots are ", updatedSlots);
+
+            try {
+                //insert the slots 
+                const insertedSlots = await Promise.all(
+                    updatedSlots.map(slot =>
+                        prisma.slotDetails.create({
+                            data: {
+                                teacherAvailabilityId,
+                                slotTime: slot.slotTime,
+                                status: slot.status as StatusType,
+                            },
+                        })
+                    )
+                );
+
+                console.log("The inserted slots are ", insertedSlots);
+                return NextResponse.json({ message: "Successfully updated the slots" }, { status: 200 });
+            } catch (error) {
+                console.log("Something went wrong while updating slots 1", error);
+                return NextResponse.json({ error: "Something went wrong while updating the slots" }, { status: 500 });
+            }
+
+            //if there is an availalbility but the teacher wants it to edit more 
+        } else {
+            try {
+                //update the availabillity 
+                const updateExistingSlots = await prisma.slotDetails.updateMany({
+                    where: {
+                        teacherAvailabilityId,
+                        slotTime: {
+                            in: deletedSessionSlots, // this is fine now
+                        },
+                    },
+                    data: {
+                        status: "UNAVAILABLE",
+                    },
+                });
+
+                console.log("The updated slots part 2 are ", updateExistingSlots);
+                return NextResponse.json({ message: "Data saved successfully !" }, { status: 200 })
+            } catch (error) {
+                console.log("Something went wrong", error);
+                return NextResponse.json({ error: "Something went wrong while updating availabilty" }, { status: 500 });
+            }
+        }
+
+
+
     } catch (error) {
         console.log("Something went wrong while updating availability", error);
         return NextResponse.json({ error: "Something went wrong while updating availabilty" }, { status: 500 });

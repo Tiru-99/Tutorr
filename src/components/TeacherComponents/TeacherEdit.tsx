@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, Camera, Upload } from "lucide-react";
 import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProfileHooks";
+import { DateTime } from 'luxon';
 
 
 interface ImageType {
@@ -29,7 +30,7 @@ interface TeacherData {
   start_time: string,
   end_time: string,
   available_days: string[],
-  price : number
+  price: number
 }
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
@@ -53,7 +54,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     start_time: teacher?.start_time || "",
     end_time: teacher?.end_time || "",
     available_days: teacher?.available_days || "",
-    price : teacher?.price || null
+    price: teacher?.price || null
   })
   const [files, setFiles] = useState<ImageType>({
     profile_pic: null,
@@ -82,20 +83,22 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         start_time: teacher?.start_time || "",
         end_time: teacher?.end_time || "",
         available_days: teacher?.available_days || "",
-        price : teacher?.price || null
+        price: teacher?.price || null
       });
       if (teacher?.start_time) {
-        const time = teacher?.start_time;
-        const hour = time.slice(0, 2);
-        const minute = time.slice(2, 4);
-        setStartTime({ hour, minute });
+        const dt = DateTime.fromISO(teacher.start_time, { zone: "utc" }).toLocal();
+        setStartTime({
+          hour: dt.hour.toString().padStart(2, '0'),
+          minute: dt.minute.toString().padStart(2, '0')
+        });
       }
 
       if (teacher?.end_time) {
-        const time = teacher?.end_time;
-        const hour = time.slice(0, 2);
-        const minute = time.slice(2, 4);
-        setEndTime({ hour, minute });
+        const dt = DateTime.fromISO(teacher.end_time, { zone: "utc" }).toLocal();
+        setEndTime({
+          hour: dt.hour.toString().padStart(2, '0'),
+          minute: dt.minute.toString().padStart(2, '0')
+        });
       }
 
       if (teacher?.license) {
@@ -244,11 +247,30 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       return;
     }
 
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localStartTime = DateTime.fromObject(
+      { hour: startHour, minute: startMinute },
+      { zone: zone }
+    );
+
+    const finalStartTime = localStartTime.toUTC().toISO();
+
+    const localEndTime = DateTime.fromObject(
+      { hour: endHour, minute: endMinute },
+      { zone: zone }
+    )
+
+    const finalEndTime = localEndTime.toUTC().toISO();
+
+    if (!finalStartTime || !finalEndTime) {
+      return null;
+    }
+
     const finalDataToSend: TeacherData =
     {
       ...dataToSend,
-      start_time: startTime.hour + startTime.minute,
-      end_time: endTime.hour + endTime.minute,
+      start_time: finalStartTime,
+      end_time: finalEndTime,
       available_days: selectedDays,
       expertise: selectedExpertise,
       session_duration: sessionTime
@@ -430,7 +452,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     placeholder="Enter price in USD"
                     value={dataToSend.price}
                     className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs"
-                    onChange={(e) => setDataToSend((prev)=> ({...prev , price : Number(e.target.value)}))}
+                    onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
                   />
                 </div>
 

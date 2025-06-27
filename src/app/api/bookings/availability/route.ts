@@ -12,12 +12,15 @@ export async function GET(req: NextRequest) {
         console.log("Incomplete details received");
         return NextResponse.json({ error: "Incomplete data received" }, { status: 409 });
     }
-
+    //to eliminate the time part
+    const dateOnly = date.split("T")[0];
     const newDate = new Date(date);
     const newDateString = newDate.toString();
     const dayOfWeek = newDateString.slice(0, 3).toUpperCase();
 
+    console.log("The day of week is" , dayOfWeek); 
 
+    console.log("the incoming date is " , date); 
 
     try {
 
@@ -26,7 +29,7 @@ export async function GET(req: NextRequest) {
                 teacher: {
                     id: teacherId
                 },
-                date: date,
+                date: dateOnly,
                 isAvailable: true
             },
             include: {
@@ -41,6 +44,7 @@ export async function GET(req: NextRequest) {
             },
         });
 
+        console.log("The availability is " , availability); 
 
         if (!availability) {
             console.log("Null availability!");
@@ -72,8 +76,9 @@ export async function GET(req: NextRequest) {
             const slots = teacherWithSlots.TemplateSlots.map(slot => slot.slotTime);
             return NextResponse.json({ slots }, { status: 200 });
         }
-
-        return NextResponse.json({ data: availability }, { status: 200 });
+        //return the slots found while availability 
+        const slots = availability.SlotDetails.map(slot => slot.slotTime);
+        return NextResponse.json({ slots }, { status: 200 });
     } catch (error) {
         console.log("Something went wrong while fetching availabilty", error);
         return NextResponse.json({ message: "Something went wrong while fetching availability" }, { status: 500 });

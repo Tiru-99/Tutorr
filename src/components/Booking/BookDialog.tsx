@@ -6,6 +6,7 @@ import {
     DialogContent,
     DialogTitle
 } from "@/components/ui/dialog";
+import { convertUtcToReadableTime } from "@/utils/utilityFunctions";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { isBefore } from "date-fns";
@@ -13,16 +14,16 @@ import { useGetTeacherAvailabilityForBooking } from "@/hooks/bookingHooks";
 import { Loader } from "lucide-react";
 
 interface SlotType {
-    slot : string ;
-    index : number | null ; 
+    slot: string;
+    index: number | null;
 }
 
 export default function BookDialog({ id }: { id: string }) {
     //states 
     const [date, setDate] = useState<Date | undefined>(new Date());
-    const [selectedSlot , setSelectedSlot] = useState<SlotType>({
-        slot : "",
-        index : null 
+    const [selectedSlot, setSelectedSlot] = useState<SlotType>({
+        slot: "",
+        index: null
     });
 
     if (!date || !id) {
@@ -32,7 +33,8 @@ export default function BookDialog({ id }: { id: string }) {
     const stringDate = date.toISOString();
 
     const { data, isLoading, isError } = useGetTeacherAvailabilityForBooking(id, stringDate);
-
+    console.log("the data is ", data);
+    const stringData = data ? convertUtcToReadableTime(data) : [];
     console.log("The data is ", data);
 
     return (
@@ -71,11 +73,11 @@ export default function BookDialog({ id }: { id: string }) {
                                 )}
 
                                 {!isLoading && data?.length > 0 &&
-                                    data.map((slot: string, index: number) => (
+                                    stringData && stringData.map((slot: string, index: number) => (
                                         <div
                                             key={index}
                                             className={`inline-flex items-center rounded-md border  cursor-pointer px-2.5 py-0.5 text-sm font-medium text-gray-800 shadow-sm 4 ${selectedSlot.index === index ? "bg-blue-500 border-blue-500 text-white  hover:bg-blue-500" : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"} transition-colors `}
-                                            onClick={() => setSelectedSlot({slot , index})}
+                                            onClick={() => setSelectedSlot({ slot, index })}
                                         >
                                             {slot}
                                         </div>

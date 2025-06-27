@@ -7,6 +7,7 @@ import TabletLicenseComponent from "./TabletLicenseView";
 import { useState } from "react";
 import { TeacherProvider } from "@/context/TeacherContext";
 import { useEffect } from "react";
+import { DateTime } from "luxon";
 
 
 export default function TeacherProfilePage({ id }: { id: string }) {
@@ -16,18 +17,20 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
     //function to generate time slots
     useEffect(() => {
+
         if (teacher?.start_time && teacher?.end_time && teacher?.session_duration) {
-            const start = parseInt(teacher.start_time.slice(0, 2), 10);
-            const end = parseInt(teacher.end_time.slice(0, 2), 10);
-            const dur = parseInt(teacher.session_duration, 10);
+            const durationInMinutes = parseInt(teacher.session_duration, 10) * 60;
+
+            const start = DateTime.fromISO(teacher.start_time, { zone: 'utc' }).toLocal();
+            const end = DateTime.fromISO(teacher.end_time, { zone: 'utc' }).toLocal();
+
             const slots: string[] = [];
 
-            for (let i = start; i + dur <= end; i++) {
-                const hour24 = i;
-                const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-                const suffix = hour24 < 12 ? "AM" : "PM";
-                const formatted = `${hour12}:00 ${suffix}`;
-                slots.push(formatted);
+            let current = start;
+
+            while (current.plus({ minutes: durationInMinutes }) <= end) {
+                slots.push(current.toFormat("h:mm a")); // e.g. "9:00 AM"
+                current = current.plus({ minutes: durationInMinutes });
             }
 
             setSessionSlots(slots);
@@ -157,12 +160,12 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
                     {/* Show LicenseComponent on all except md (tablet) */}
                     <div className="block md:hidden lg:block">
-                        <LicenseComponent price = {teacher.price}/>
+                        <LicenseComponent price={teacher.price} />
                     </div>
 
                     {/* Show TabletLicenseComponent only on md (tablet) screens */}
                     <div className="hidden md:block lg:hidden">
-                        <TabletLicenseComponent price = {teacher.price} />
+                        <TabletLicenseComponent price={teacher.price} />
                     </div>
                 </div>
             </TeacherProvider>
