@@ -1,5 +1,5 @@
 {
-  "name": "tutorrr",
+  "name": "tutorr",
   "private": true,
   "scripts": {
     "build": "turbo run build",

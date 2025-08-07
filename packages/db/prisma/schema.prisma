@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  type     UserType
+  teacher  Teacher? @relation
+  student  Student? @relation
+}
+
+enum UserType {
+  TEACHER
+  STUDENT
+}
+
+model Teacher {
+  id                  String                @id @default(uuid())
+  userId              String                @unique
+  user                User                  @relation(fields: [userId], references: [id])
+  phone_number        String?
+  name                String?
+  company_name        String?
+  highest_education   String?
+  years_of_exp        String?
+  about               String?
+  license             String? //link of the pdf document
+  expertise           String[]
+  session_duration    String?
+  start_time          String?
+  end_time            String?
+  available_days      String[]
+  subject             String?
+  profile_pic         String?
+  banner_pic          String?
+  price               Int?
+  average_rating      String?
+  razorpay_cust_id    String?
+  teacher_review      TeacherReview[]
+  session             Session[]
+  TeacherAvailability TeacherAvailability[]
+  //Template slots
+  SessionDetails      SlotDetails[]
+  TemplateSlots       TemplateSlots[]
+  Wallet              Wallet?
+}
+
+model Student {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id])
+  phoneNumber    String?
+  name           String?
+  interests      String[]
+  profile_pic    String?
+  banner_pic     String?
+  teacher_review TeacherReview[]
+  session        Session[]
+}
+
+model TeacherReview {
+  id        String  @id @default(uuid())
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+  comment   String?
+  rating    Int
+}
+
+model Session {
+  id             String        @id @default(uuid())
+  teacherId      String        
+  teacher        Teacher       @relation(fields: [teacherId], references: [id])
+  studentId      String        
+  student        Student       @relation(fields: [studentId], references: [id])
+
+  //Optional slot references
+  slotId         String?        @unique
+  slot           SlotDetails?   @relation(fields: [slotId], references: [id])
+
+  templateSlotId String?   @unique 
+  templateSlot  TemplateSlots?   @relation(fields : [templateSlotId] , references: [id])
+  meeting_url    String?
+  payment_id     String?
+  order_id       String?
+  booking_status BookingStatus
+}
+
+enum BookingStatus {
+  PENDING_SUCCESS
+  SUCCESS
+  FAILED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+}
+
+model TemplateSlots {
+  id        String     @id @default(uuid())
+  teacherId String
+  teacher   Teacher    @relation(fields: [teacherId], references: [id])
+  slotTime  String
+  status    StatusType
+  session   Session?
+}
+
+model TeacherAvailability {
+  id          String        @id @default(uuid())
+  teacherId   String
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  date        String?
+  dayOfWeek   String?
+  isAvailable Boolean?
+  SlotDetails SlotDetails[]
+
+  @@unique([teacherId, date])
+}
+
+model SlotDetails {
+  id                    String               @id @default(uuid())
+  //Direct teacher relationship for (default / template) slots
+  teacherId             String?
+  teacher               Teacher?             @relation(fields: [teacherId], references: [id])
+  //for availability relationship (for data specific slots)
+  teacherAvailabilityId String?
+  availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id], onDelete: Cascade)
+  status                StatusType           @default(AVAILABLE)
+  slotTime              String?
+  session               Session?
+
+  @@unique([teacherId, slotTime])
+  @@unique([teacherAvailabilityId, slotTime])
+}
+
+enum StatusType {
+  BOOKED
+  AVAILABLE
+  CANCELLED
+  UNAVAILABLE
+}
+
+model Wallet {
+  id           String         @id @default(uuid())
+  amount       String
+  currency     Currency
+  teacherId    String         @unique
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+  transactions Transactions[]
+}
+
+enum Currency {
+  USD
+  INR
+}
+
+model Transactions {
+  id        String          @id @default(uuid())
+  studentId String
+  teacherId String
+  type      TransactionType
+  walletId  String
+  amount    Float
+  createdAt DateTime        @default(now())
+  wallet    Wallet          @relation(fields: [walletId], references: [id])
+}
+
+enum TransactionType {
+  BOOKING
+  REFUND
+}

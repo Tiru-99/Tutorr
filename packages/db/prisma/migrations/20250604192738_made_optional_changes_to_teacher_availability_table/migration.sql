@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "TeacherAvailability" ALTER COLUMN "date" DROP NOT NULL,
+ALTER COLUMN "dayOfWeek" DROP NOT NULL,
+ALTER COLUMN "isAvailable" DROP NOT NULL;

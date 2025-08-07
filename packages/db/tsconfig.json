@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
+  "include": [
+    "*.ts",
+    "prisma/**/*"
+, "src/prisma.ts", "src/types.ts"  ],
+  "exclude": [
+    "node_modules", 
+    "dist"
+  ]
+}
