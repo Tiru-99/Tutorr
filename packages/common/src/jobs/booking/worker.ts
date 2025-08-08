@@ -41,7 +41,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingAttempt(jobData: BookingJobData , jobId : string) {
-        const { studentId, teacherId, slotId, request_id, price, jobType } = jobData;
+        const { studentId, teacherId, slotId, request_id, price, date , jobType } = jobData;
         console.log("In the booking attempt section ");
         console.log("the socket is " , this.io); 
         //create a lock key 
@@ -74,7 +74,7 @@ export class BookingWorker extends BaseWorker<any> {
 
             //store booking context
             await redis.setex(`booking:${order.id}`, 30000, JSON.stringify({
-                studentId, teacherId, slotId, fencingToken, request_id
+                studentId, teacherId, slotId, fencingToken, request_id , date
             }));
 
             const orderToSend = {
@@ -101,7 +101,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingCreation(jobData: BookingCreationData) {
-        const { studentId, teacherId, fencingToken, slotId, paymentId, orderId, amount } = jobData;
+        const { studentId, teacherId, fencingToken, slotId, paymentId, orderId, amount , date} = jobData;
         const lockKey = `lock:tutor:${teacherId}:${slotId}`
         
         const eventName = `bookingUpdate/${orderId}`;
@@ -125,7 +125,8 @@ export class BookingWorker extends BaseWorker<any> {
                 teacherId,
                 slotId,
                 paymentId,
-                orderId
+                orderId,
+                date
             }
             const booking = await this.createBooking(bookingData);
 
@@ -209,7 +210,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async createBooking(bookingData: any) {
-        const { studentId, teacherId, slotId, paymentId, orderId } = bookingData;
+        const { studentId, teacherId, slotId, paymentId, orderId , date } = bookingData;
         //create a meeting url here and save it to the db
         try {
             const meetingLink = createMeeting(slotId);
@@ -235,6 +236,17 @@ export class BookingWorker extends BaseWorker<any> {
                     payment_id: paymentId
                 }
             });
+
+            //create a teacher Availability as well for that day 
+            const availability = await prisma.teacherAvailability.findFirst({
+                where : {
+                    date : date
+                }
+            });
+
+            // if(!availability){
+            //     prisma.teacherAvailability.create()
+            // }
 
             return booking;
         } catch (error) {

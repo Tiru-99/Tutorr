@@ -11,9 +11,9 @@ import { BookingQueue } from '@tutorr/common'
 
 export async function POST(req: NextRequest) {
     //create a lock using the redis lua script 
-    const { studentId, teacherId, slotId, price } = await req.json();
+    const { studentId, teacherId, slotId, price , date } = await req.json();
     console.log("Code is coming in the backend ");
-    if (!studentId || !teacherId || !slotId || !price) {
+    if (!studentId || !teacherId || !slotId || !price || !date) {
         console.log("Incomplete details in the booking section");
         return NextResponse.json({ message: "Incomplete details" }, { status: 403 });
     }
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
             slotId,
             request_id,
             price,
+            date,
             jobType: "attempt-booking"
         })
 

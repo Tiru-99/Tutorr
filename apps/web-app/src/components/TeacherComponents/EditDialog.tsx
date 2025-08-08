@@ -159,7 +159,7 @@ export default function EditDialog() {
                             {isLoading ? (
                                 // Render loader if isLoading is true
                                 <div className="flex justify-center items-center h-40">
-                                    <Loader />
+                                    <div>Loading...</div>
                                 </div>
                             ) : (
                                 // Else render the rest of your component

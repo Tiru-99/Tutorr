@@ -158,7 +158,8 @@ export default function BookDialog({ id, price }: { id: string, price: number })
             studentId,
             teacherId: id,
             slotId,
-            price
+            price , 
+            date : date.toString()
         }
 
         console.log("Log 3");

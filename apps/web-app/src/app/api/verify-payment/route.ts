@@ -25,8 +25,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Booking not found" }, { status: 404 });
         }
 
-        const { studentId, teacherId, slotId, fencingToken } = JSON.parse(bookingContext);
-        if (!studentId || !teacherId || !slotId || !fencingToken) {
+        const { studentId, teacherId, slotId, fencingToken , date } = JSON.parse(bookingContext);
+        const dateObj = new Date(date);
+        const newDate = dateObj.toISOString().split("T")[0];
+        console.log("The new date in the verify payment is " , newDate); 
+        if (!studentId || !teacherId || !slotId || !fencingToken ||!date) {
             console.log("Incomplete details found !!!");
             return NextResponse.json({ error: "Please send all the inputs" }, { status: 500 });
         }
@@ -91,6 +94,7 @@ export async function POST(req: NextRequest) {
             slotId,
             fencingToken,
             amount,
+            date : newDate , 
             paymentId: razorpay_payment_id,
             orderId: razorpay_order_id,
             jobType: "create-booking"

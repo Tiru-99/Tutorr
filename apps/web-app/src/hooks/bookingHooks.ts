@@ -5,7 +5,8 @@ export interface BookingType {
     studentId : string ,
     teacherId : string , 
     slotId : string , 
-    price : number 
+    price : number ,
+    date : string
 }
 
 
