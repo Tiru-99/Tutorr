@@ -118,6 +118,7 @@ export class BookingWorker extends BaseWorker<any> {
                 throw new Error("Invalid or expired fencing token");
             
             }
+            //check if the slot id is template slot of availability slotid
 
             //book the meeting and the save the details in db
             const bookingData = {
