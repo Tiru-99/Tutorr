@@ -28,21 +28,38 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+
+        //find the schedule for the teacher bruh 
+        const schedule = await prisma.schedule.findFirst({
+            where: {
+                teacherId
+            }
+        });
+
+        if (!schedule) {
+            console.log("No schedule for the teacher found!");
+            return NextResponse.json({
+                error: "Please make a schedule before inserting overrides"
+            }, { status: 403 });
+        }
+
+        const scheduleId = schedule.id;
         // Prepare data for bulk insert
         const availabilityData = times.map((t: any) => ({
             teacherId,
             date,
             startTime: t.startUTC,
             endTime: t.endUTC,
-            availability
+            availability,
+            scheduleId
         }));
 
         // Insert multiple rows
-        await prisma.availability.createMany({
+        const data = await prisma.availability.createMany({
             data: availabilityData
         });
 
-        console.log("Availability successfull!!");
+        console.log("Availability successfull!!", data);
         return NextResponse.json({
             message: "Successfully Created Override!"
         }, { status: 200 })
@@ -125,11 +142,7 @@ export async function DELETE(req: NextRequest) {
 
     const availabilityId = searchParams.get("availabilityId");
 
-    const user = (req as any).user;
-    if (!user?.teacher?.id) {
-        return NextResponse.json({ error: "Only teachers can update availability" }, { status: 403 });
-    }
-    const teacherId = user.teacher.id;
+    const teacherId = req.headers.get("x-teacher-id");
 
     if (!availabilityId) {
         console.log("No availalbility id found!");

@@ -1,4 +1,4 @@
-import { useMutation ,  useQuery } from "@tanstack/react-query";
+import { useMutation ,  useQuery , useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 
@@ -28,6 +28,15 @@ export const insertSchedule = async(data : any) => {
     return response.data; 
 }
 
+export const deleteOverride = async( params : {availabilityId : string}) => {
+    const response = await axios.delete("/api/teacher/availability" , 
+    {
+        params,
+        withCredentials : true
+    });
+    return response.data ; 
+}
+
 
 export const useInsertOverride = () => {
     return useMutation({
@@ -48,3 +57,15 @@ export const useInsertSchedule = () => {
         mutationFn : insertSchedule
     })
 }
+
+export const useDeleteOverride = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { availabilityId: string }) => deleteOverride(params),
+    onSuccess: () => {
+      // invalidate cached queries so UI updates
+      queryClient.invalidateQueries({ queryKey: ["overrides"] });
+    },
+  });
+};

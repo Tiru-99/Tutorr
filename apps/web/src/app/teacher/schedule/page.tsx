@@ -14,7 +14,7 @@ export default function Home() {
         setTeacherId(id);
     }, []);
 
-    const { data, isLoading, isError } = useGetScheduleAndOverrides(teacherId);
+    const { data, isLoading, isError , refetch } = useGetScheduleAndOverrides(teacherId);
 
     console.log("The schedule data coming from the backend is ", data);
 
@@ -42,7 +42,13 @@ export default function Home() {
 
                     {/* Override section */}
                     <div className="w-full max-w-4xl">
-                        <Override />
+                        {isLoading && <p>Loading Override</p>}
+                        { data && (
+                            <Override
+                                overrides = {data.overrides}
+                                refetch = {refetch}
+                            />
+                        )}
                     </div>
 
                 </div>

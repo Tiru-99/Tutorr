@@ -106,6 +106,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No schedule found" }, { status: 404 });
     }
 
+    console.log("The found schedule is " , schedule);
+
     // split into overrides and templates
     const overrides = schedule.availability.filter(a => a.date !== null);
     const templates = schedule.availability.filter(a => a.date === null);
