@@ -154,6 +154,7 @@ model Schedule {
   teacher      Teacher        @relation(fields: [teacherId], references: [id])
   timezone     String
   duration     Int
+  days         String[]
   availability Availability[]
 }
 

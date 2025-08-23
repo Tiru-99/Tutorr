@@ -2,13 +2,12 @@
 import DateOverrideModal from "./DateOverrideModal"
 import { Button } from "../ui/button"
 import { Trash, Calendar, Clock } from "lucide-react"
-import { useTimezone } from "@/context/TimezoneContext"
+import { useScheduleContext } from "@/context/ScheduleContext"
 import { useDeleteOverride } from "@/hooks/overrideHooks"
 
 export default function Override({ overrides, refetch }: { overrides: any[]; refetch: () => void }) {
-    console.log("the coming overrides is", overrides)
-    const { timezone } = useTimezone()
-    console.log("The timezone is", timezone)
+    const { timezone} = useScheduleContext();
+
 
     return (
         <>
@@ -66,7 +65,7 @@ type OverrideCardProps = {
 }
 
 function OverrideCard({ date, startTime, endTime, id, onDeleteSuccess }: OverrideCardProps) {
-    const { timezone } = useTimezone();
+    const { timezone } = useScheduleContext();
     const result = formatSchedule(startTime, endTime, timezone);
     const { mutate: deleteOverride, isPending } = useDeleteOverride();
 

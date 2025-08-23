@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import ScheduleSection from "@/components/TeacherComponents/ScheduleSection";
 import Override from "@/components/TeacherComponents/Override";
-import { TimezoneProvider } from "@/context/TimezoneContext";
+import { TimezoneProvider } from "@/context/ScheduleContext";
 import { useGetScheduleAndOverrides } from "@/hooks/overrideHooks";
 
 export default function Home() {

@@ -3,7 +3,7 @@ import prisma from "@tutorr/db";
 import { DateTime } from "luxon";
 
 export async function POST(req: NextRequest) {
-    const { timezone, duration, startTime, endTime } = await req.json();
+    const { timezone, duration, startTime, endTime , days } = await req.json();
     const teacherId = req.headers.get("x-teacher-id");
 
     if (!teacherId) {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         }, { status: 400 })
     }
 
-    if (!timezone || !duration || !startTime || !endTime) {
+    if (!timezone || !duration || !startTime || !endTime || !days) {
         console.log("Incomplete schedule details");
         return NextResponse.json({
             error: "Incomplete details sent !"
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
                 teacherId,
                 timezone,
                 duration,
+                days , 
                 availability: {
                     create: [
                         {
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
             update: {
                 timezone,
                 duration,
+                days ,
                 availability: {
                     updateMany: {
                         where: { date: null },
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest) {
 
         console.log("Schedule created : ", schedule);
     } catch (error) {
-        console.log("something went wrong while creating schedule");
+        console.log("something went wrong while creating schedule", error);
         return NextResponse.json({
             error: "Something went wrong while creating schedule"
         }, { status: 500 })

@@ -1,30 +1,33 @@
+
 import {
     Dialog,
     DialogTrigger,
     DialogContent,
     DialogTitle
 } from "@/components/ui/dialog"
-import { Input } from "../ui/input";
 import { Calendar } from "../ui/calendar"
 import { Button } from "../ui/button"
-import { useState } from "react";
-import { isBefore } from "date-fns";
-import SmartTimePicker from "./SmartTimePicker";
-import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
 import OverrideTime from "./OverrideTime";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
 import { useInsertOverride } from "@/hooks/overrideHooks";
-import { useTimezone } from "@/context/TimezoneContext";
-import { Trash } from "lucide-react";
+import { useScheduleContext } from "@/context/ScheduleContext";
+import { DateTime } from "luxon";
 
 export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { onSaveSuccess: () => void, disabledDates: string[] }) {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [availabilityForDay, setAvailabilityForDay] = useState(false);
     const [times, setTimes] = useState([{ startTime: "9", endTime: "17" }]);
     const { mutate, isPending, isError } = useInsertOverride();
+    const { timezone, selectedDays } = useScheduleContext();
 
-    const { timezone } = useTimezone();
+    //for the days not in array mark unavailable for day as true
+    useEffect(() => {
+        if (!date) return;
+        const weekdayCode = DateTime.fromJSDate(date).toFormat("ccc").toUpperCase();
+        setAvailabilityForDay(!selectedDays.includes(weekdayCode));
+    }, [date, selectedDays]);
 
     if (date) {
         console.log("The date is ", date.toISOString());
@@ -34,6 +37,7 @@ export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { on
     const disabled = disabledDates.map(dateUTC =>
         DateTime.fromISO(dateUTC, { zone: "utc" }).toISODate() // normalize to YYYY-MM-DD
     );
+
 
 
     const handleSubmit = () => {
@@ -130,9 +134,6 @@ export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { on
 }
 
 //override component box code here 
-
-
-import { DateTime } from "luxon";
 
 type TimeRange = {
     startTime: string; // e.g. "9"

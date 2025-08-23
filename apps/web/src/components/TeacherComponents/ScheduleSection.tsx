@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Clock, Globe, Calendar, Settings, Timer } from "lucide-react"
-import { useTimezone } from "@/context/TimezoneContext"
+import { useScheduleContext } from "@/context/ScheduleContext"
 import { Button } from "../ui/button"
 import { useInsertSchedule } from "@/hooks/overrideHooks"
 import { toast } from "sonner"
@@ -28,7 +28,8 @@ const timezones = [
 
 type ScheduleType = {
   timezone: string
-  duration: number
+  duration: number,
+  days : string[]
 }
 
 type TemplateType = {
@@ -43,7 +44,7 @@ interface ScheduleSectionProps {
 
 export default function ScheduleSection({ schedule, templates }: ScheduleSectionProps) {
   // context api reference
-  const { timezone, setTimezone } = useTimezone()
+  const { timezone, setTimezone , selectedDays , setSelectedDays } = useScheduleContext()
 
   const durationMap = {
     "1 Hour": 1,
@@ -53,15 +54,13 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
 
   const [duration, setDuration] = useState<number | null>(1)
   const { mutate, isPending, isError } = useInsertSchedule()
-  const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [time, setTime] = useState({
     startTime: "9",
     endTime: "17",
-  })
+  });
+  console.log("The schedule is ", schedule);
 
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
-
-  console.log("the time is ", time)
 
   useEffect(() => {
     if (!schedule || !templates) {
@@ -78,6 +77,7 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
     })
     setTimezone(schedule.timezone)
     setDuration(schedule.duration)
+    setSelectedDays(schedule.days);
   }, [schedule, templates])
 
   // for passing changes from child to parent from smarttimepicker
@@ -85,9 +85,11 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
     setTime({ startTime: start, endTime: end })
   }
 
-  const toggleDays = (day: string) => {
-    setSelectedDays((prev) => (prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]))
-  }
+ const toggleDays = (day: string) => {
+  setSelectedDays((prev) =>
+    prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]
+  );
+};
 
   const handleSave = () => {
     // converting it to HH:mm format
@@ -102,6 +104,7 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
       startTime: startTimeToSend,
       endTime: endTimeToSend,
       duration,
+      days : selectedDays
     }
     console.log("data to send is ", dataToSend)
 
