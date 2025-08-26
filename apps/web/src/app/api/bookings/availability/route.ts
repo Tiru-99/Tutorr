@@ -28,6 +28,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
     .toUTC()
     .toJSDate();
 
+
+
   // Get schedule with session duration
   const schedule = await prisma.schedule.findFirst({
     where: {
@@ -55,17 +57,12 @@ export async function GET(req: NextRequest, res: NextResponse) {
   let slots = [];
 
   if (overrides && overrides.length > 0) {
+
+    return NextResponse.json({
+      message: "All well test message"
+    }, { status: 200 })
     // Generate slots from overrides
-    for (const override of overrides) {
-      const overrideSlots = generateSlots(
-        override.startTime,
-        override.endTime,
-        sessionDurationMs,
-        utcStartDate,
-        utcEndDate
-      );
-      slots.push(...overrideSlots);
-    }
+
   } else {
     // Fallback to template availability
     const availability = await prisma.availability.findFirst({
@@ -77,68 +74,87 @@ export async function GET(req: NextRequest, res: NextResponse) {
       }
     });
 
-    if (availability && availability.startTime && availability.endTime) {
-      const slot = combineDateTime(
-        dateStart,
-        availability.startTime.toISOString(),
-        availability.endTime.toISOString()
-      );
-      
-      const slotStart = new Date(slot.startTime);
-      const slotEnd = new Date(slot.endTime);
-      
-      // Generate slots from template availability
-      const templateSlots = generateSlots(
-        slotStart,
-        slotEnd,
-        sessionDurationMs,
-        utcStartDate,
-        utcEndDate
-      );
-      slots.push(...templateSlots);
-    }
-  }
+    let finalSlots: { start: string; end: string }[] = [];
 
-  return NextResponse.json({
-    slots: slots
-  }, { status: 200 });
-}
+    // create slots first
+    const generatedSlots = createSlots(
+      availability?.startTime!,
+      availability?.endTime!,
+      schedule.duration
+    );
 
-function generateSlots(
-  availabilityStart: Date,
-  availabilityEnd: Date,
-  sessionDurationMs: number,
-  userDateStart: Date,
-  userDateEnd: Date
-) {
-  const slots = [];
-  let currentSlotStart = new Date(availabilityStart.getTime());
-  
-  while (currentSlotStart < availabilityEnd) {
-    const currentSlotEnd = new Date(currentSlotStart.getTime() + sessionDurationMs);
-    
-    // Don't include slot if it starts at or after user's date range end
-    if (currentSlotStart >= userDateEnd) {
-      break;
-    }
-    
-    // Truncate slot end if it exceeds availability end
-    const actualSlotEnd = currentSlotEnd > availabilityEnd ? availabilityEnd : currentSlotEnd;
-    
-    // Only include slots that have some overlap with user's date range
-    if (currentSlotStart < userDateEnd && actualSlotEnd > userDateStart) {
-      slots.push({
-        startTime: currentSlotStart,
-        endTime: actualSlotEnd
+    // iterate slots
+    for (const slot of generatedSlots) {
+      const startTimeOnly = slot.start.toString().split("T")[1].slice(0, 5); // HH:mm
+      const endTimeOnly = slot.end.toString().split("T")[1].slice(0, 5);
+
+      const startTimeforUtcStart = utcStartDate.toISOString().split("T")[1].slice(0, 5);
+      const endTimeforUtcEnd = utcEndDate.toISOString().split("T")[1].slice(0, 5);
+
+      if (startTimeOnly > startTimeforUtcStart) {
+        // replace the date with utcStartDate's date
+        const datePart = utcStartDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
+      } else if (startTimeOnly < endTimeforUtcEnd) {
+        // replace the date with utcEndDate's date
+        const datePart = utcEndDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
+      }
+
+      // update end date to match adjusted start's date
+      const datePartForEnd = slot.start.split("T")[0];
+      slot.end = `${datePartForEnd}T${endTimeOnly}:00.000Z`;
+
+      // ✅ push the adjusted slot into finalSlots
+      finalSlots.push({
+        start: slot.start,
+        end: slot.end,
       });
     }
-    
-    // Move to next slot
-    currentSlotStart = new Date(currentSlotEnd.getTime());
+
+    console.log("Final Slots:", finalSlots);
+
+    // if yes attach it the startUtc Date , and continue with the loop
+    // in the else block check if the slots start time is less than the endUTCDate's time 
+    // if yes attach it the startUtc Date , and continue with the loop 
+
+    return NextResponse.json({
+      message: "Slots generated",
+      slots: finalSlots
+    })
+
   }
-  
+}
+
+function createSlots(
+  startTime: Date,
+  endTime: Date,
+  sessionDuration: number
+): { start: string; end: string }[] {
+  const slots: { start: string; end: string }[] = [];
+
+  let start = new Date(startTime);
+  const end = new Date(endTime);
+
+  while (start < end) {
+    const slotEnd = new Date(start.getTime() + sessionDuration * 60 * 60 * 1000);
+
+    // Ensure slot end doesn’t go past the end time
+    if (slotEnd > end) break;
+
+    slots.push({
+      start: start.toISOString(),
+      end: slotEnd.toISOString(),
+    });
+
+    // Move start forward
+    start = slotEnd;
+  }
+
   return slots;
 }
+
+
 
 interface DateTimeResult {
   startTime: string | Date;
@@ -182,3 +198,4 @@ export function combineDateTime(
     endTime: newEndTime!
   };
 }
+

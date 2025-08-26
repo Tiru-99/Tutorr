@@ -258,8 +258,8 @@ function getDateRange(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
   const day = String(date.getDate()).padStart(2, "0");
 
-  const start = `${year}-${month}-${day}T00:00:00Z`;
-  const end = `${year}-${month}-${day}T23:59:00Z`;
+  const start = `${year}-${month}-${day}T00:00:00`;
+  const end = `${year}-${month}-${day}T23:59:00`;
 
   return { start, end };
 }
