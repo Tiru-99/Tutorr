@@ -2,7 +2,7 @@ import { useMutation ,  useQuery , useQueryClient } from "@tanstack/react-query"
 import axios from "axios";
 
 
-//add proper types here 
+//TODO : add proper types here
 
 export const insertOverride = async(data : any) => {
     const response = await axios.post("/api/teacher/availability" , data , {
@@ -34,6 +34,16 @@ export const deleteOverride = async( params : {availabilityId : string}) => {
         params,
         withCredentials : true
     });
+    return response.data ; 
+}
+
+export const getSlotsByDate = async( params : { dateStart : string, dateEnd : string , timezone : string , teacherId : string}) => {
+    const response = await axios.get("/api/bookings/availability" , 
+        {
+            params , 
+            withCredentials : true
+        }
+    ) ; 
     return response.data ; 
 }
 
@@ -69,3 +79,17 @@ export const useDeleteOverride = () => {
     },
   });
 };
+
+export function useGetSlotsByDate(params: { 
+  dateStart: string; 
+  dateEnd: string; 
+  timezone: string; 
+  teacherId: string; 
+}) {
+  return useQuery({
+    queryKey: ["slotsByDate", params], 
+    queryFn: () => getSlotsByDate(params),
+    enabled: Boolean(params.dateStart && params.dateEnd && params.teacherId), // only fetch if valid
+    staleTime: 1000 * 60 * 5, //cache for 5 mins
+  });
+}

@@ -15,11 +15,13 @@ import { useBookTeacherSlot } from "@/hooks/bookingHooks";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { isBefore } from "date-fns";
-import { useGetTeacherAvailabilityForBooking } from "@/hooks/bookingHooks";
+import { useGetSlotsByDate } from "@/hooks/overrideHooks";
 import { Loader } from "lucide-react";
 import { formatTime } from "../../utils/utilityFunctions";
 import { io } from 'socket.io-client';
 import { toast } from "sonner";
+import { DateTime } from "luxon";
+
 
 
 type SlotType = {
@@ -52,6 +54,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     const [sessionId, setSessionId] = useState<string>();
     const { Razorpay } = useRazorpay();
 
+
     useEffect(() => {
         if (order) {
             const studentName = localStorage.getItem("name");
@@ -69,100 +72,109 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         }
     }, [order]);
 
-    console.log("the job id is ", jobId);
+  
     //use memo hook to initialise the socket only once
-    const socket = useMemo(() => {
-        const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`)
+    // const socket = useMemo(() => {
+    //     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`)
 
-        newSocket.on("connect", () => {
-            console.log("Connected to the socket server")
-        })
+    //     newSocket.on("connect", () => {
+    //         console.log("Connected to the socket server")
+    //     })
 
-        newSocket.on("disconnect", () => {
-            console.log("❌ Disconnected from socket server");
-        });
+    //     newSocket.on("disconnect", () => {
+    //         console.log(" Disconnected from socket server");
+    //     });
 
-        newSocket.on("hello", (data: any) => {
-            console.log("Message received ", data.message);
-        })
+    //     newSocket.on("hello", (data: any) => {
+    //         console.log("Message received ", data.message);
+    //     })
 
-        return newSocket
-    }, [])
+    //     return newSocket
+    // }, [])
 
-    useEffect(() => {
-        if (!jobId || !socket) return;
+    // useEffect(() => {
+    //     if (!jobId || !socket) return;
 
-        const eventName = `bookingUpdate/${jobId}`;
-        console.log(`🎯 Setting up listener for: ${eventName}`);
+    //     const eventName = `bookingUpdate/${jobId}`;
+    //     console.log(`🎯 Setting up listener for: ${eventName}`);
 
-        const handleBookingUpdate = (data: any) => {
-            console.log(`📨 Received ${eventName}:`, data);
-            toast(data.message);
+    //     const handleBookingUpdate = (data: any) => {
+    //         console.log(`📨 Received ${eventName}:`, data);
+    //         toast(data.message);
 
-            if (data && data.order) {
-                console.log("✅ Order data received:", data);
-                setOrder(data.order);
-            }
-        };
+    //         if (data && data.order) {
+    //             console.log("✅ Order data received:", data);
+    //             setOrder(data.order);
+    //         }
+    //     };
 
-        socket.on(eventName, handleBookingUpdate);
+    //     socket.on(eventName, handleBookingUpdate);
 
-        // Cleanup function
-        return () => {
-            console.log(` Cleaning up listener for: ${eventName}`);
-            socket.off(eventName, handleBookingUpdate);
-        };
-    }, [jobId, socket]);
+    //     // Cleanup function
+    //     return () => {
+    //         // console.log(` Cleaning up listener for: ${eventName}`);
+    //         socket.off(eventName, handleBookingUpdate);
+    //     };
+    // }, [jobId, socket]);
 
     //useEffect for listening booking creation events 
-    useEffect(() => {
-        if (!order) return;
-        const id = order.id
-        const eventName = `bookingUpdate/${order.id}`;
+    // useEffect(() => {
+    //     if (!order) return;
+    //     const id = order.id
+    //     const eventName = `bookingUpdate/${order.id}`;
 
-        const handleBookingUpdate = (data: any) => {
-            console.log(`Got the event for ${eventName}`, data);
-            toast(data.message)
-        }
+    //     const handleBookingUpdate = (data: any) => {
+    //         console.log(`Got the event for ${eventName}`, data);
+    //         toast(data.message)
+    //     }
 
-        socket.on(eventName, handleBookingUpdate);
+    //     socket.on(eventName, handleBookingUpdate);
 
-        return () => {
-            console.log("Cleaning up for event" + eventName);
-            socket.off(eventName, handleBookingUpdate);
-        }
+    //     return () => {
+    //         console.log("Cleaning up for event" + eventName);
+    //         socket.off(eventName, handleBookingUpdate);
+    //     }
 
-    }, [order, socket])
+    // }, [order, socket])
 
-    console.log("The selected slot is ", selectedSlot.slot?.id);
 
-    if (!date || !id) {
+    //getting slots per day feat : 
+    if (!date ) {
         return null;
     }
-    //converting date to isoString 
-    const stringDate = date.toISOString();
-
-    const { data, isLoading, isError } = useGetTeacherAvailabilityForBooking(id, stringDate);
-    console.log("the data is ", data);
-
+    const convertedDate = new Date(date); 
+    //fetch user's timezone 
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    //converting date into start and end ranges 
+    const { start : dateStart , end : dateEnd} = getDateRange(date);
+    console.log("The startdate and endDate on frontend are" , dateStart , dateEnd)
+    const paramsToSend = {
+        dateStart , 
+        dateEnd , 
+        timezone ,
+        teacherId : id
+    }
+    
+    const {data , isLoading , isError } = useGetSlotsByDate(paramsToSend);
+    console.log("The incoming backend data is" , data);
     const handleBook = () => {
         alert("Are you sure you want to book this slot ? ");
-        console.log("Log 1 ");
+       
         const studentId = localStorage.getItem("studentId");
         const slotId = selectedSlot.slot?.id
         if (!id || !studentId || !slotId || !price) {
             return null;
         }
-        console.log("Log 2");
+        
         const dataToSend = {
             studentId,
             teacherId: id,
             slotId,
-            price , 
-            date : date.toString()
+            price,
+            date: date.toString()
         }
 
-        console.log("Log 3");
+        
         let detailsJobId;
         mutate(dataToSend, {
             onSuccess: (details) => {
@@ -175,11 +187,6 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 setErrMessage(err);
             }
         })
-
-        //poll the backend if the payment is done or not 
-        console.log("The session id is", sessionId);
-
-
 
     }
 
@@ -201,6 +208,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                     className="rounded-md border shadow-sm"
                                     disabled={(date) => isBefore(date, new Date())}
                                 />
+                              
                             </div>
                         </div>
 
@@ -243,4 +251,15 @@ export default function BookDialog({ id, price }: { id: string, price: number })
             </Dialog>
         </>
     )
+}
+
+function getDateRange(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
+
+  const start = `${year}-${month}-${day}T00:00:00Z`;
+  const end = `${year}-${month}-${day}T23:59:00Z`;
+
+  return { start, end };
 }

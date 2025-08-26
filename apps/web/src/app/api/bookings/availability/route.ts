@@ -1,94 +1,184 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@tutorr/db';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@tutorr/db";
+import { DateTime } from "luxon";
 
-export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
+export async function GET(req: NextRequest, res: NextResponse) {
+  const { searchParams } = new URL(req.url);
 
-    const date = searchParams.get("date");
-    const teacherId = searchParams.get("teacherId");
+  const dateStart = searchParams.get("dateStart");
+  const dateEnd = searchParams.get("dateEnd");
+  const timezone = searchParams.get("timezone");
+  const teacherId = searchParams.get("teacherId");
 
-    if (!date || !teacherId) {
-        console.log("Incomplete details received");
-        return NextResponse.json({ error: "Incomplete data received" }, { status: 409 });
+  if (!dateStart || !dateEnd || !timezone || !teacherId) {
+    console.log("Incomplete data received");
+    return NextResponse.json({
+      error: "Incomplete data received"
+    }, { status: 500 });
+  }
+
+  // Convert user date range to UTC
+  const utcStartDate = DateTime.fromISO(dateStart, { zone: timezone })
+    .startOf("day")
+    .toUTC()
+    .toJSDate();
+
+  const utcEndDate = DateTime.fromISO(dateEnd, { zone: timezone })
+    .endOf("day")
+    .toUTC()
+    .toJSDate();
+
+  // Get schedule with session duration
+  const schedule = await prisma.schedule.findFirst({
+    where: {
+      teacherId
     }
+  });
 
-    // to eliminate the time part
-    const dateOnly = date.split("T")[0];
-    const newDate = new Date(date);
-    const newDateString = newDate.toString();
-    const dayOfWeek = newDateString.slice(0, 3).toUpperCase();
+  if (!schedule || !schedule.duration) {
+    return NextResponse.json({
+      error: "Schedule or session duration not found"
+    }, { status: 404 });
+  }
 
-    console.log("The day of week is", dayOfWeek);
-    console.log("The incoming date is", date);
+  const sessionDurationMs = schedule.duration * 60 * 60 * 1000; // Convert hours to milliseconds
 
-    try {
-        const availability = await prisma.teacherAvailability.findFirst({
-            where: {
-                teacher: {
-                    id: teacherId
-                },
-                date: dateOnly,
-                isAvailable: true
-            },
-            include: {
-                SlotDetails: {
-                    where: {
-                        status: "AVAILABLE",
-                    },
-                    select: {
-                        id: true,
-                        slotTime: true
-                    }
-                },
-            },
-        });
+  // Find overrides
+  const overrides = await prisma.availability.findMany({
+    where: {
+      teacherId,
+      startTime: { gte: utcStartDate },
+      endTime: { lte: utcEndDate },
+    },
+  });
 
-        console.log("The availability is", availability);
+  let slots = [];
 
-        if (!availability) {
-            console.log("Null availability!");
-
-            const teacherWithSlots = await prisma.teacher.findUnique({
-                where: { id: teacherId },
-                select: {
-                    available_days: true,
-                    TemplateSlots: {
-                        where: {
-                            session: null  // only get slots where no session exists
-                        },
-                        select: {
-                            id: true,
-                            slotTime: true
-                        }
-                    }
-                }
-            });
-
-
-            if (!teacherWithSlots) {
-                console.log("Teacher not found");
-                return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
-            }
-
-            if (!teacherWithSlots.available_days.includes(dayOfWeek)) {
-                console.log("Teacher is not available on this day");
-                return NextResponse.json({ slots: [] }, { status: 200 });
-            }
-
-            console.log("The default slots are", teacherWithSlots.TemplateSlots);
-            return NextResponse.json({
-                slots: teacherWithSlots.TemplateSlots,
-                teacherWithSlots
-            }, { status: 200 });
+  if (overrides && overrides.length > 0) {
+    // Generate slots from overrides
+    for (const override of overrides) {
+      const overrideSlots = generateSlots(
+        override.startTime,
+        override.endTime,
+        sessionDurationMs,
+        utcStartDate,
+        utcEndDate
+      );
+      slots.push(...overrideSlots);
+    }
+  } else {
+    // Fallback to template availability
+    const availability = await prisma.availability.findFirst({
+      where: {
+        teacherId,
+        date: {
+          equals: null
         }
+      }
+    });
 
-        return NextResponse.json({
-            slots: availability.SlotDetails,
-            finalDetails: availability.SlotDetails
-        }, { status: 200 });
-
-    } catch (error) {
-        console.log("Something went wrong while fetching availability", error);
-        return NextResponse.json({ message: "Something went wrong while fetching availability" }, { status: 500 });
+    if (availability && availability.startTime && availability.endTime) {
+      const slot = combineDateTime(
+        dateStart,
+        availability.startTime.toISOString(),
+        availability.endTime.toISOString()
+      );
+      
+      const slotStart = new Date(slot.startTime);
+      const slotEnd = new Date(slot.endTime);
+      
+      // Generate slots from template availability
+      const templateSlots = generateSlots(
+        slotStart,
+        slotEnd,
+        sessionDurationMs,
+        utcStartDate,
+        utcEndDate
+      );
+      slots.push(...templateSlots);
     }
+  }
+
+  return NextResponse.json({
+    slots: slots
+  }, { status: 200 });
+}
+
+function generateSlots(
+  availabilityStart: Date,
+  availabilityEnd: Date,
+  sessionDurationMs: number,
+  userDateStart: Date,
+  userDateEnd: Date
+) {
+  const slots = [];
+  let currentSlotStart = new Date(availabilityStart.getTime());
+  
+  while (currentSlotStart < availabilityEnd) {
+    const currentSlotEnd = new Date(currentSlotStart.getTime() + sessionDurationMs);
+    
+    // Don't include slot if it starts at or after user's date range end
+    if (currentSlotStart >= userDateEnd) {
+      break;
+    }
+    
+    // Truncate slot end if it exceeds availability end
+    const actualSlotEnd = currentSlotEnd > availabilityEnd ? availabilityEnd : currentSlotEnd;
+    
+    // Only include slots that have some overlap with user's date range
+    if (currentSlotStart < userDateEnd && actualSlotEnd > userDateStart) {
+      slots.push({
+        startTime: currentSlotStart,
+        endTime: actualSlotEnd
+      });
+    }
+    
+    // Move to next slot
+    currentSlotStart = new Date(currentSlotEnd.getTime());
+  }
+  
+  return slots;
+}
+
+interface DateTimeResult {
+  startTime: string | Date;
+  endTime: string | Date;
+}
+
+export function combineDateTime(
+  startDate: string,
+  startTime: string,
+  endTime: string
+): DateTimeResult {
+  // Parse the start date to get the date portion
+  const baseDate = DateTime.fromISO(startDate);
+
+  // Parse the time inputs to extract time portions
+  const startTimeObj = DateTime.fromISO(startTime);
+  const endTimeObj = DateTime.fromISO(endTime);
+
+  // Combine base date with start time
+  const newStartTime = baseDate
+    .set({
+      hour: startTimeObj.hour,
+      minute: startTimeObj.minute,
+      second: startTimeObj.second,
+      millisecond: startTimeObj.millisecond
+    })
+    .toISO();
+
+  // Combine base date with end time
+  const newEndTime = baseDate
+    .set({
+      hour: endTimeObj.hour,
+      minute: endTimeObj.minute,
+      second: endTimeObj.second,
+      millisecond: endTimeObj.millisecond
+    })
+    .toISO();
+
+  return {
+    startTime: newStartTime!,
+    endTime: newEndTime!
+  };
 }

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET!) as MyJwtPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as MyJwtPayload;
         console.log("the decoded user type is " , decoded.type); 
         if (decoded.type === "TEACHER") {
             console.log("Teacher not allowed");
