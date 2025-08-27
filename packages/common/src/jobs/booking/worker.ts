@@ -19,8 +19,6 @@ export class BookingWorker extends BaseWorker<any> {
 
 
     protected async processJob(job: Job<BookingJobData>): Promise<any> {
-        //aquire lock 
-        console.log("Processing the job" , job);
         const { jobType } = job.data;
         const jobId = job.id ; 
 
