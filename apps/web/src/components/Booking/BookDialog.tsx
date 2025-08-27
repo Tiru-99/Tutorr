@@ -44,17 +44,16 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         slot: null,
         index: null
     });
-      const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [errMessage, setErrMessage] = useState<string>();
     const [sessionId, setSessionId] = useState<string>();
     const { Razorpay } = useRazorpay();
 
-
+    // Payment initiation effect
     useEffect(() => {
         if (order) {
             const studentName = localStorage.getItem("name");
             const studentEmail = localStorage.getItem("email");
-
 
             if (!studentName || !studentEmail) return;
 
@@ -67,8 +66,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         }
     }, [order]);
 
-
-    //use memo hook to initialise the socket only once
+    // Socket initialization (keep as is)
     const socket = useMemo(() => {
         const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`)
 
@@ -77,7 +75,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         })
 
         newSocket.on("disconnect", () => {
-            console.log(" Disconnected from socket server");
+            console.log("Disconnected from socket server");
         });
 
         newSocket.on("hello", (data: any) => {
@@ -87,63 +85,79 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         return newSocket
     }, [])
 
+    // COMBINED socket effect - handles both jobId and order events
     useEffect(() => {
-        if (!jobId || !socket) return;
+        if (!socket) return;
 
-        const eventName = `bookingUpdate/${jobId}`;
-        console.log(`🎯 Setting up listener for: ${eventName}`);
+        const eventHandlers: any = [];
 
-        const handleBookingUpdate = (data: any) => {
-            console.log(`📨 Received ${eventName}:`, data);
-            toast(data.message);
+        // Handle jobId events (booking attempt)
+        if (jobId) {
+            const jobEventName = `bookingUpdate/${jobId}`;
+            console.log(`🎯 Setting up listener for: ${jobEventName}`);
 
-            if (data && data.order) {
-                console.log("✅ Order data received:", data);
-                setOrder(data.order);
-            }
-        };
+            const handleJobUpdate = (data: any) => {
+                console.log(`📨 Received ${jobEventName}:`, data);
+                toast(data.message);
 
-        socket.on(eventName, handleBookingUpdate);
+                if (data && data.order) {
+                    console.log("✅ Order data received:", data);
+                    setOrder(data.order);
+                }
+            };
+
+            socket.on(jobEventName, handleJobUpdate);
+            eventHandlers.push({ eventName: jobEventName, handler: handleJobUpdate });
+        }
+
+        // Handle order events (booking creation)
+        if (order) {
+            const orderEventName = `bookingUpdate/${order.id}`;
+            console.log(`🎯 Setting up listener for: ${orderEventName}`);
+
+            const handleOrderUpdate = (data: any) => {
+                console.log(`📨 Received ${orderEventName}:`, data);
+                toast(data.message);
+            };
+
+            socket.on(orderEventName, handleOrderUpdate);
+            eventHandlers.push({ eventName: orderEventName, handler: handleOrderUpdate });
+        }
 
         // Cleanup function
         return () => {
-            // console.log(` Cleaning up listener for: ${eventName}`);
-            socket.off(eventName, handleBookingUpdate);
+            eventHandlers.forEach(({ eventName, handler }: any) => {
+                console.log(`🧹 Cleaning up listener for: ${eventName}`);
+                socket.off(eventName, handler);
+            });
         };
-    }, [jobId, socket]);
+    }, [jobId, order, socket]);
 
-    //useEffect for listening booking creation events 
-    useEffect(() => {
-        if (!order) return;
-        const id = order.id
-        const eventName = `bookingUpdate/${order.id}`;
+    // Reset function to clear all booking-related state
+    // const resetBookingState = () => {
+    //     setJobId(undefined);
+    //     setOrder(undefined);
+    //     setSelectedSlot({ slot: null, index: null });
+    //     setErrMessage(undefined);
+    //     setSessionId(undefined);
+    //     setIsDialogOpen(false);
+    // };
 
-        const handleBookingUpdate = (data: any) => {
-            console.log(`Got the event for ${eventName}`, data);
-            toast(data.message)
-        }
+    // // Modified dialog close handler
+    // const handleDialogClose = () => {
+    //     resetBookingState();
+    // };
 
-        socket.on(eventName, handleBookingUpdate);
-
-        return () => {
-            console.log("Cleaning up for event" + eventName);
-            socket.off(eventName, handleBookingUpdate);
-        }
-
-    }, [order, socket])
-
-
-    //getting slots per day feat : 
+    // Getting slots per day (keep as is)
     if (!date) {
         return null;
     }
     const convertedDate = new Date(date);
-    //fetch user's timezone 
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const weekDay = convertedDate
         .toLocaleDateString("en-US", { weekday: "short" })
-        .toUpperCase(); // gives "MON", "TUE", etc.
-    //converting date into start and end ranges 
+        .toUpperCase();
+
     const { start: dateStart, end: dateEnd } = getDateRange(date);
 
     const paramsToSend = {
@@ -161,7 +175,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     newDate.setUTCHours(0, 0, 0, 0);
 
     const handleBook = () => {
-        alert("Are you sure you want to book this slot ? ");
+        alert("Are you sure you want to book this slot?");
 
         const studentId = localStorage.getItem("studentId");
         if (!id || !studentId || !selectedSlot.slot || !price) {
@@ -178,12 +192,9 @@ export default function BookDialog({ id, price }: { id: string, price: number })
             date: newDate.toISOString()
         }
 
-
-        let detailsJobId;
         mutate(dataToSend, {
             onSuccess: (details) => {
                 console.log("the job id is ", details);
-                detailsJobId = details.jobId;
                 setJobId(details.jobId);
             },
             onError: (err: any) => {
@@ -191,8 +202,8 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 setErrMessage(err);
             }
         })
-
     }
+
 
     return (
         <>
