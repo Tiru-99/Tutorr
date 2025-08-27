@@ -25,23 +25,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Booking not found" }, { status: 404 });
         }
 
-        const { studentId, teacherId, slotId, fencingToken, date } = JSON.parse(bookingContext);
-        const dateObj = new Date(date);
-        const newDate = dateObj.toISOString().split("T")[0];
-        console.log("The new date in the verify payment is ", newDate);
-        if (!studentId || !teacherId || !slotId || !fencingToken || !date) {
+        const { studentId, teacherId, fencingToken, date , startTime , endTime } = JSON.parse(bookingContext);
+        console.log("The new date in the verify payment is ", date);
+        if (!studentId || !teacherId || !fencingToken || !date || !startTime || !endTime) {
             console.log("Incomplete details found !!!");
             return NextResponse.json({ error: "Please send all the inputs" }, { status: 500 });
         }
         let session;
-        console.log("The details are ", studentId, teacherId, slotId, fencingToken);
+        console.log("The details are ", studentId, teacherId, fencingToken , date);
 
         try {
-            session = await prisma.session.create({
+            session = await prisma.booking.create({
                 data: {
                     teacherId,
                     studentId,
-                    booking_status: "PENDING_SUCCESS"
+                    status: "PENDING_SUCCESS"
                 }
             })
             console.log("Payment status updated", session);
@@ -56,10 +54,11 @@ export async function POST(req: NextRequest) {
         await bookingQueue.addJob('booking', {
             studentId,
             teacherId,
-            slotId,
+            startTime,
+            endTime,
             fencingToken,
             amount,
-            date: newDate,
+            date,
             paymentId: razorpay_payment_id,
             orderId: razorpay_order_id,
             jobType: "create-booking"

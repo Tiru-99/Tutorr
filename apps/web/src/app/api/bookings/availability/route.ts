@@ -9,8 +9,9 @@ export async function GET(req: NextRequest, res: NextResponse) {
   const dateEnd = searchParams.get("dateEnd");
   const timezone = searchParams.get("timezone");
   const teacherId = searchParams.get("teacherId");
+  const weekDay = searchParams.get("weekDay");
 
-  if (!dateStart || !dateEnd || !timezone || !teacherId) {
+  if (!dateStart || !dateEnd || !timezone || !teacherId || !weekDay) {
     console.log("Incomplete data received");
     return NextResponse.json({
       error: "Incomplete data received"
@@ -29,100 +30,126 @@ export async function GET(req: NextRequest, res: NextResponse) {
     .toJSDate();
 
 
-
-  // Get schedule with session duration
-  const schedule = await prisma.schedule.findFirst({
-    where: {
-      teacherId
-    }
-  });
-
-  if (!schedule || !schedule.duration) {
-    return NextResponse.json({
-      error: "Schedule or session duration not found"
-    }, { status: 404 });
-  }
-
-  const sessionDurationMs = schedule.duration * 60 * 60 * 1000; // Convert hours to milliseconds
-
-  // Find overrides
-  const overrides = await prisma.availability.findMany({
-    where: {
-      teacherId,
-      startTime: { gte: utcStartDate },
-      endTime: { lte: utcEndDate },
-    },
-  });
-
-  let slots = [];
-
-  if (overrides && overrides.length > 0) {
-
-    return NextResponse.json({
-      message: "All well test message"
-    }, { status: 200 })
-    // Generate slots from overrides
-
-  } else {
-    // Fallback to template availability
-    const availability = await prisma.availability.findFirst({
+  try {
+    // Get schedule with session duration
+    const schedule = await prisma.schedule.findFirst({
       where: {
-        teacherId,
-        date: {
-          equals: null
-        }
+        teacherId
       }
     });
-
-    let finalSlots: { start: string; end: string }[] = [];
-
-    // create slots first
-    const generatedSlots = createSlots(
-      availability?.startTime!,
-      availability?.endTime!,
-      schedule.duration
-    );
-
-    // iterate slots
-    for (const slot of generatedSlots) {
-      const startTimeOnly = slot.start.toString().split("T")[1].slice(0, 5); // HH:mm
-      const endTimeOnly = slot.end.toString().split("T")[1].slice(0, 5);
-
-      const startTimeforUtcStart = utcStartDate.toISOString().split("T")[1].slice(0, 5);
-      const endTimeforUtcEnd = utcEndDate.toISOString().split("T")[1].slice(0, 5);
-
-      if (startTimeOnly > startTimeforUtcStart) {
-        // replace the date with utcStartDate's date
-        const datePart = utcStartDate.toISOString().split("T")[0]; // YYYY-MM-DD
-        slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
-      } else if (startTimeOnly < endTimeforUtcEnd) {
-        // replace the date with utcEndDate's date
-        const datePart = utcEndDate.toISOString().split("T")[0]; // YYYY-MM-DD
-        slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
-      }
-
-      // update end date to match adjusted start's date
-      const datePartForEnd = slot.start.split("T")[0];
-      slot.end = `${datePartForEnd}T${endTimeOnly}:00.000Z`;
-
-      // ✅ push the adjusted slot into finalSlots
-      finalSlots.push({
-        start: slot.start,
-        end: slot.end,
-      });
+  
+    if (!schedule || !schedule.duration) {
+      return NextResponse.json({
+        error: "Schedule or session duration not found"
+      }, { status: 404 });
     }
-
-    console.log("Final Slots:", finalSlots);
-
-    // if yes attach it the startUtc Date , and continue with the loop
-    // in the else block check if the slots start time is less than the endUTCDate's time 
-    // if yes attach it the startUtc Date , and continue with the loop 
-
+  
+    const days = schedule.days ; 
+    if(!days.includes(weekDay)){
+      return NextResponse.json({
+        message : "Teacher is not available for this day",
+        slots : []
+      } , { status : 200 })
+    }
+  
+    const sessionDurationMs = schedule.duration * 60 * 60 * 1000; // Convert hours to milliseconds
+  
+    // Find overrides
+    const overrides = await prisma.availability.findMany({
+      where: {
+        teacherId,
+        startTime: { gte: utcStartDate },
+        endTime: { lte: utcEndDate },
+      },
+    });
+  
+    let slots = [];
+  
+    if (overrides && overrides.length > 0) {
+      for (const override of overrides) {
+        const overrideSlots = generateSlots(
+          override.startTime,
+          override.endTime,
+          sessionDurationMs,
+          utcStartDate,
+          utcEndDate
+        );
+        slots.push(...overrideSlots);
+      }
+  
+      return NextResponse.json({
+        message: "All well test message",
+        slots 
+      }, { status: 200 })
+      // Generate slots from overrides
+  
+    } else {
+      // Fallback to template availability
+      const availability = await prisma.availability.findFirst({
+        where: {
+          teacherId,
+          date: {
+            equals: null
+          }
+        }
+      });
+  
+      let finalSlots: { startTime: string; endTime: string }[] = [];
+  
+      // create slots first
+      const generatedSlots = createSlots(
+        availability?.startTime!,
+        availability?.endTime!,
+        schedule.duration
+      );
+  
+      // iterate slots
+      for (const slot of generatedSlots) {
+        const startTimeOnly = slot.start.toString().split("T")[1].slice(0, 5); // HH:mm
+        const endTimeOnly = slot.end.toString().split("T")[1].slice(0, 5);
+  
+        const startTimeforUtcStart = utcStartDate.toISOString().split("T")[1].slice(0, 5);
+        const endTimeforUtcEnd = utcEndDate.toISOString().split("T")[1].slice(0, 5);
+  
+        if (startTimeOnly > startTimeforUtcStart) {
+          // replace the date with utcStartDate's date
+          const datePart = utcStartDate.toISOString().split("T")[0]; // YYYY-MM-DD
+          slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
+        } else if (startTimeOnly < endTimeforUtcEnd) {
+          // replace the date with utcEndDate's date
+          const datePart = utcEndDate.toISOString().split("T")[0]; // YYYY-MM-DD
+          slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
+        }
+  
+        // update end date to match adjusted start's date
+        const datePartForEnd = slot.start.split("T")[0];
+        slot.end = `${datePartForEnd}T${endTimeOnly}:00.000Z`;
+  
+        // push the adjusted slot into finalSlots
+        finalSlots.push({
+          startTime: slot.start,
+          endTime: slot.end,
+        });
+      }
+  
+      console.log("Final Slots:", finalSlots);
+  
+      // if yes attach it the startUtc Date , and continue with the loop
+      // in the else block check if the slots start time is less than the endUTCDate's time 
+      // if yes attach it the startUtc Date , and continue with the loop 
+  
+      return NextResponse.json({
+        message: "Slots generated",
+        slots: finalSlots
+      })
+  
+    }
+  } catch (error) {
+    console.log("Something went wrong in the availability route", error);
     return NextResponse.json({
-      message: "Slots generated",
-      slots: finalSlots
-    })
-
+      message : "Something went wrong in the availability route",
+      error 
+    } , { status : 500 })
   }
 }
 
@@ -199,3 +226,38 @@ export function combineDateTime(
   };
 }
 
+function generateSlots(
+  availabilityStart: Date,
+  availabilityEnd: Date,
+  sessionDurationMs: number,
+  userDateStart: Date,
+  userDateEnd: Date
+) {
+  const slots = [];
+  let currentSlotStart = new Date(availabilityStart.getTime());
+
+  while (currentSlotStart < availabilityEnd) {
+    const currentSlotEnd = new Date(currentSlotStart.getTime() + sessionDurationMs);
+
+    // Don't include slot if it starts at or after user's date range end
+    if (currentSlotStart >= userDateEnd) {
+      break;
+    }
+
+    // Truncate slot end if it exceeds availability end
+    const actualSlotEnd = currentSlotEnd > availabilityEnd ? availabilityEnd : currentSlotEnd;
+
+    // Only include slots that have some overlap with user's date range
+    if (currentSlotStart < userDateEnd && actualSlotEnd > userDateStart) {
+      slots.push({
+        startTime: currentSlotStart,
+        endTime: actualSlotEnd
+      });
+    }
+
+    // Move to next slot
+    currentSlotStart = new Date(currentSlotEnd.getTime());
+  }
+
+  return slots;
+}

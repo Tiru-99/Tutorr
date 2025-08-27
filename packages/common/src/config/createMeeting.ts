@@ -1,4 +1,4 @@
-
-export const createMeeting = (slotId : string) => {
-  return `https://meet.jit.si/${slotId}`;
-}
+export const createMeeting = () => {
+  const randomString = Math.random().toString(36).substring(2, 10); // 8 chars
+  return `https://meet.jit.si/meeting-${randomString}`;
+};

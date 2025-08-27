@@ -210,6 +210,7 @@ export async function GET(req: NextRequest) {
                 date: {
                     not: null,
                 },
+                status : "AVAILABLE"
             },
         });
 

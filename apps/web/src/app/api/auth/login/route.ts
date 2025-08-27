@@ -62,6 +62,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         }, process.env.JWT_SECRET!);
 
         console.log("User logged in successfully", existingUser);
+        const testStudentId = existingUser.teacher?.id ?? null ; 
+        console.log("The test student id is " , testStudentId);
         const response = NextResponse.json({
             message: "User logged in Successfully",
             userId: existingUser.id,

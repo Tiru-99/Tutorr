@@ -158,23 +158,25 @@ model Schedule {
   availability Availability[]
 }
 
-enum OverrideReason {
+enum OverrideStatus {
   BOOKED
   UNAVAILABLE
   CANCELLED
+  AVAILABLE
 }
 
 //compulsorily link availability to schedule
 model Availability {
-  id           String    @id @default(uuid())
+  id           String          @id @default(uuid())
   teacherId    String
-  teacher      Teacher   @relation(fields: [teacherId], references: [id])
+  teacher      Teacher         @relation(fields: [teacherId], references: [id])
   startTime    DateTime
   endTime      DateTime //1970-01-01T00:00:00Z format
   date         DateTime?
-  availability Boolean   @default(true)
+  availability Boolean         @default(true)
   scheduleId   String?
-  Schedule     Schedule? @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  status       OverrideStatus? @default(AVAILABLE)
+  Schedule     Schedule?       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 }
 
 enum BookingStatus {
@@ -189,8 +191,7 @@ model Booking {
   teacher     Teacher       @relation(fields: [teacherId], references: [id])
   studentId   String
   student     Student       @relation(fields: [studentId], references: [id])
-  startTime   DateTime
-  endTime     DateTime
+  startTime   DateTime?
   meeting_url String?
   payment_id  String?
   order_id    String?

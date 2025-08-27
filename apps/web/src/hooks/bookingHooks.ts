@@ -4,7 +4,8 @@ import axios from "axios";
 export interface BookingType {
     studentId : string ,
     teacherId : string , 
-    slotId : string , 
+    startTime : string ,
+    endTime : string ,  
     price : number ,
     date : string
 }

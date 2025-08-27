@@ -41,12 +41,12 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingAttempt(jobData: BookingJobData , jobId : string) {
-        const { studentId, teacherId, slotId, request_id, price, date , jobType } = jobData;
+        const { studentId, teacherId, startTime , endTime, request_id, price, date , jobType } = jobData;
         console.log("In the booking attempt section ");
         console.log("the socket is " , this.io); 
         //create a lock key 
         try {
-            const lockKey = `lock:tutor:${teacherId}:${slotId}`;
+            const lockKey = `lock:tutor:${teacherId}:${startTime}`;
             const ttl = 300000 // 5 minutes 
 
             let fencingToken: number;
@@ -74,7 +74,7 @@ export class BookingWorker extends BaseWorker<any> {
 
             //store booking context
             await redis.setex(`booking:${order.id}`, 30000, JSON.stringify({
-                studentId, teacherId, slotId, fencingToken, request_id , date
+                studentId, teacherId, startTime , endTime , fencingToken, request_id , date
             }));
 
             const orderToSend = {
@@ -101,8 +101,8 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingCreation(jobData: BookingCreationData) {
-        const { studentId, teacherId, fencingToken, slotId, paymentId, orderId, amount , date} = jobData;
-        const lockKey = `lock:tutor:${teacherId}:${slotId}`
+        const { studentId, teacherId, fencingToken, startTime , endTime, paymentId, orderId, amount , date} = jobData;
+        const lockKey = `lock:tutor:${teacherId}:${startTime}`
         
         const eventName = `bookingUpdate/${orderId}`;
 
@@ -124,7 +124,8 @@ export class BookingWorker extends BaseWorker<any> {
             const bookingData = {
                 studentId,
                 teacherId,
-                slotId,
+                startTime,
+                endTime ,
                 paymentId,
                 orderId,
                 date
@@ -211,13 +212,13 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async createBooking(bookingData: any) {
-        const { studentId, teacherId, slotId, paymentId, orderId , date } = bookingData;
+        const { studentId, teacherId, startTime , endTime , paymentId, orderId , date } = bookingData;
         //create a meeting url here and save it to the db
         try {
-            const meetingLink = createMeeting(slotId);
+            const meetingLink = createMeeting();
 
             //find booking 
-            const session = await prisma.session.findFirst({
+            const session = await prisma.booking.findFirst({
                 where: {
                     teacherId,
                     studentId
@@ -226,28 +227,48 @@ export class BookingWorker extends BaseWorker<any> {
 
             if (!session) throw new Error('Session not found');
 
-            const booking = await prisma.session.update({
+            const booking = await prisma.booking.update({
                 where: {
                     id: session.id
                 },
                 data: {
-                    booking_status: 'SUCCESS',
+                    status: 'SUCCESS',
                     meeting_url: meetingLink,
                     order_id: orderId,
-                    payment_id: paymentId
+                    payment_id: paymentId,
+                    startTime 
                 }
             });
-
+            
+            console.log("The date in the worker is " , date); 
             //create a teacher Availability as well for that day 
-            const availability = await prisma.teacherAvailability.findFirst({
+            const schedule = await prisma.schedule.findFirst({
                 where : {
-                    date : date
+                    teacherId , 
+                    availability : {
+                        some: {
+                            date 
+                        }
+                    }
+                } , 
+                include : {
+                    availability : true
                 }
             });
 
-            // if(!availability){
-            //     prisma.teacherAvailability.create()
-            // }
+            const availability = schedule?.availability; 
+
+            if(availability?.length === 0){
+                await prisma.availability.create({
+                    data : {
+                        teacherId,
+                        date , 
+                        startTime , 
+                        endTime , 
+                        status : "BOOKED"
+                    }
+                })
+            }
 
             return booking;
         } catch (error) {

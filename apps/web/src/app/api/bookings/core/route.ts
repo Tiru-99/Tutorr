@@ -5,18 +5,19 @@
 // 4) Send the notification 
 
 import { NextRequest, NextResponse } from "next/server";
-import  redis  from '@tutorr/common'
+import redis from '@tutorr/common'
 import { BookingQueue } from '@tutorr/common'
 
 
 export async function POST(req: NextRequest) {
     //create a lock using the redis lua script 
-    const { studentId, teacherId, slotId, price , date } = await req.json();
-    console.log("Code is coming in the backend ");
-    if (!studentId || !teacherId || !slotId || !price || !date) {
+    const { studentId, teacherId, startTime, endTime, price, date } = await req.json();
+    console.log("Code is coming in the backend ", date);
+    if ([studentId, teacherId, startTime, endTime, price, date].some(v => v == null || v === "")) {
         console.log("Incomplete details in the booking section");
         return NextResponse.json({ message: "Incomplete details" }, { status: 403 });
     }
+
 
 
     //add the locking mechanism to the queue itself 
@@ -28,7 +29,8 @@ export async function POST(req: NextRequest) {
         const job = await bookingQueue.addJob('booking', {
             studentId,
             teacherId,
-            slotId,
+            startTime,
+            endTime,
             request_id,
             price,
             date,
@@ -38,10 +40,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
             {
                 message: "Booking request received. Processing...",
-                request_id, 
-                jobId : job.id
+                request_id,
+                jobId: job.id
             },
-            { status: 202 } 
+            { status: 202 }
         );
 
     } catch (error) {

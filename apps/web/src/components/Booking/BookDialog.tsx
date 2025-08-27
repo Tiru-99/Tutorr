@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRazorpay } from "react-razorpay";
-import axios from 'axios';
 import {
     Dialog,
     DialogTrigger,
@@ -16,21 +15,16 @@ import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { isBefore } from "date-fns";
 import { useGetSlotsByDate } from "@/hooks/overrideHooks";
-import { Loader } from "lucide-react";
-import { formatTime } from "../../utils/utilityFunctions";
-import { io } from 'socket.io-client';
-import { toast } from "sonner";
 import { DateTime } from "luxon";
-
+import { toast } from "sonner";
+import { io } from 'socket.io-client';
 
 
 type SlotType = {
-    slot: {
-        id: string;
-        slotTime: string;
-    } | null;
+    slot: { startTime: string; endTime: string } | null;
     index: number | null;
 };
+
 
 interface OrderType {
     key: string;
@@ -50,6 +44,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         slot: null,
         index: null
     });
+      const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [errMessage, setErrMessage] = useState<string>();
     const [sessionId, setSessionId] = useState<string>();
     const { Razorpay } = useRazorpay();
@@ -72,109 +67,118 @@ export default function BookDialog({ id, price }: { id: string, price: number })
         }
     }, [order]);
 
-  
+
     //use memo hook to initialise the socket only once
-    // const socket = useMemo(() => {
-    //     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`)
+    const socket = useMemo(() => {
+        const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`)
 
-    //     newSocket.on("connect", () => {
-    //         console.log("Connected to the socket server")
-    //     })
+        newSocket.on("connect", () => {
+            console.log("Connected to the socket server")
+        })
 
-    //     newSocket.on("disconnect", () => {
-    //         console.log(" Disconnected from socket server");
-    //     });
+        newSocket.on("disconnect", () => {
+            console.log(" Disconnected from socket server");
+        });
 
-    //     newSocket.on("hello", (data: any) => {
-    //         console.log("Message received ", data.message);
-    //     })
+        newSocket.on("hello", (data: any) => {
+            console.log("Message received ", data.message);
+        })
 
-    //     return newSocket
-    // }, [])
+        return newSocket
+    }, [])
 
-    // useEffect(() => {
-    //     if (!jobId || !socket) return;
+    useEffect(() => {
+        if (!jobId || !socket) return;
 
-    //     const eventName = `bookingUpdate/${jobId}`;
-    //     console.log(`🎯 Setting up listener for: ${eventName}`);
+        const eventName = `bookingUpdate/${jobId}`;
+        console.log(`🎯 Setting up listener for: ${eventName}`);
 
-    //     const handleBookingUpdate = (data: any) => {
-    //         console.log(`📨 Received ${eventName}:`, data);
-    //         toast(data.message);
+        const handleBookingUpdate = (data: any) => {
+            console.log(`📨 Received ${eventName}:`, data);
+            toast(data.message);
 
-    //         if (data && data.order) {
-    //             console.log("✅ Order data received:", data);
-    //             setOrder(data.order);
-    //         }
-    //     };
+            if (data && data.order) {
+                console.log("✅ Order data received:", data);
+                setOrder(data.order);
+            }
+        };
 
-    //     socket.on(eventName, handleBookingUpdate);
+        socket.on(eventName, handleBookingUpdate);
 
-    //     // Cleanup function
-    //     return () => {
-    //         // console.log(` Cleaning up listener for: ${eventName}`);
-    //         socket.off(eventName, handleBookingUpdate);
-    //     };
-    // }, [jobId, socket]);
+        // Cleanup function
+        return () => {
+            // console.log(` Cleaning up listener for: ${eventName}`);
+            socket.off(eventName, handleBookingUpdate);
+        };
+    }, [jobId, socket]);
 
     //useEffect for listening booking creation events 
-    // useEffect(() => {
-    //     if (!order) return;
-    //     const id = order.id
-    //     const eventName = `bookingUpdate/${order.id}`;
+    useEffect(() => {
+        if (!order) return;
+        const id = order.id
+        const eventName = `bookingUpdate/${order.id}`;
 
-    //     const handleBookingUpdate = (data: any) => {
-    //         console.log(`Got the event for ${eventName}`, data);
-    //         toast(data.message)
-    //     }
+        const handleBookingUpdate = (data: any) => {
+            console.log(`Got the event for ${eventName}`, data);
+            toast(data.message)
+        }
 
-    //     socket.on(eventName, handleBookingUpdate);
+        socket.on(eventName, handleBookingUpdate);
 
-    //     return () => {
-    //         console.log("Cleaning up for event" + eventName);
-    //         socket.off(eventName, handleBookingUpdate);
-    //     }
+        return () => {
+            console.log("Cleaning up for event" + eventName);
+            socket.off(eventName, handleBookingUpdate);
+        }
 
-    // }, [order, socket])
+    }, [order, socket])
 
 
     //getting slots per day feat : 
-    if (!date ) {
+    if (!date) {
         return null;
     }
-    const convertedDate = new Date(date); 
+    const convertedDate = new Date(date);
     //fetch user's timezone 
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const weekDay = convertedDate
+        .toLocaleDateString("en-US", { weekday: "short" })
+        .toUpperCase(); // gives "MON", "TUE", etc.
     //converting date into start and end ranges 
-    const { start : dateStart , end : dateEnd} = getDateRange(date);
-    console.log("The startdate and endDate on frontend are" , dateStart , dateEnd)
+    const { start: dateStart, end: dateEnd } = getDateRange(date);
+
     const paramsToSend = {
-        dateStart , 
-        dateEnd , 
-        timezone ,
-        teacherId : id
+        dateStart,
+        dateEnd,
+        timezone,
+        teacherId: id,
+        weekDay
     }
-    
-    const {data , isLoading , isError } = useGetSlotsByDate(paramsToSend);
-    console.log("The incoming backend data is" , data);
+
+    const { data, isLoading, isError } = useGetSlotsByDate(paramsToSend);
+    const newDate = new Date(date);
+    console.log("The data coming from the backend is ", data);
+
+    newDate.setUTCHours(0, 0, 0, 0);
+
     const handleBook = () => {
         alert("Are you sure you want to book this slot ? ");
-       
+
         const studentId = localStorage.getItem("studentId");
-        const slotId = selectedSlot.slot?.id
-        if (!id || !studentId || !slotId || !price) {
+        if (!id || !studentId || !selectedSlot.slot || !price) {
             return null;
         }
-        
+        console.log("The studentId to send in the backend is bruh ", studentId);
+
         const dataToSend = {
             studentId,
             teacherId: id,
-            slotId,
+            startTime: selectedSlot.slot?.startTime,
+            endTime: selectedSlot.slot?.endTime,
             price,
-            date: date.toString()
+            date: newDate.toISOString()
         }
 
-        
+
         let detailsJobId;
         mutate(dataToSend, {
             onSuccess: (details) => {
@@ -192,7 +196,17 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 
     return (
         <>
-            <Dialog>
+            <Dialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                    setIsDialogOpen(open);
+
+                    if (!open) {
+                        // dialog closed → reset selectedSlot
+                        setSelectedSlot({ slot: null, index: null });
+                    }
+                }}
+            >
                 <DialogTrigger asChild>
                     <Button className="bg-blue-700 text-white scale-110 cursor-pointer">Book Now</Button>
                 </DialogTrigger>
@@ -208,7 +222,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                     className="rounded-md border shadow-sm"
                                     disabled={(date) => isBefore(date, new Date())}
                                 />
-                              
+
                             </div>
                         </div>
 
@@ -220,28 +234,44 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                 </div>
                             )}
                             <div className="flex flex-row flex-wrap max-w-full gap-2 mt-2">
-                                {!isLoading && data?.length === 0 && (
+                                {!isLoading && data?.slots?.length === 0 && (
                                     <div>
-                                        <h2 className="text-sm text-gray-500 italic">Teacher is not available on this day</h2>
+                                        <h2 className="text-sm text-gray-500 italic">
+                                            {data?.message || "Teacher is not available on this day"}
+                                        </h2>
                                     </div>
                                 )}
 
-                                {!isLoading && data?.length > 0 &&
-                                    data.map((slot: { id: string; slotTime: string }, index: number) => (
-                                        <div
-                                            key={slot.id}
-                                            className={`inline-flex items-center rounded-md border cursor-pointer px-2.5 py-0.5 text-sm font-medium text-gray-800 shadow-sm transition-colors ${selectedSlot.index === index
-                                                ? "bg-blue-500 border-blue-500 text-white hover:bg-blue-500"
-                                                : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"
-                                                }`}
-                                            onClick={() => setSelectedSlot({ slot, index })}
-                                        >
-                                            {formatTime(slot.slotTime)}
-                                        </div>
-                                    ))
-                                }
+                                {!isLoading && data?.slots?.length > 0 &&
+                                    data.slots.map((slot: { startTime: string; endTime: string }, index: number) => {
+                                        const localStart = DateTime.fromISO(slot.startTime, { zone: "utc" })
+                                            .toLocal()
+                                            .toFormat("hh:mm a");
+                                        const localEnd = DateTime.fromISO(slot.endTime, { zone: "utc" })
+                                            .toLocal()
+                                            .toFormat("hh:mm a");
 
+                                        return (
+                                            <div
+                                                key={slot.startTime}
+                                                className={`inline-flex items-center rounded-md border cursor-pointer px-2.5 py-0.5 text-sm font-medium text-gray-800 shadow-sm transition-colors ${selectedSlot.index === index
+                                                    ? "bg-blue-500 border-blue-500 text-white hover:bg-blue-500"
+                                                    : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"
+                                                    }`}
+                                                onClick={() => {
+                                                    if (selectedSlot.index === index) {
+                                                        setSelectedSlot({ slot: null, index: null }); // unselect
+                                                    } else {
+                                                        setSelectedSlot({ slot, index });
+                                                    }
+                                                }}
+                                            >
+                                                {localStart} - {localEnd}
+                                            </div>
+                                        );
+                                    })}
                             </div>
+
 
                             <Button className="absolute bottom-2 left-0 w-full cursor-pointer" onClick={handleBook}> Book Now </Button>
 
@@ -254,12 +284,12 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 }
 
 function getDateRange(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
-  const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
+    const day = String(date.getDate()).padStart(2, "0");
 
-  const start = `${year}-${month}-${day}T00:00:00`;
-  const end = `${year}-${month}-${day}T23:59:00`;
+    const start = `${year}-${month}-${day}T00:00:00`;
+    const end = `${year}-${month}-${day}T23:59:00`;
 
-  return { start, end };
+    return { start, end };
 }

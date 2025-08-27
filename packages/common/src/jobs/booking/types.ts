@@ -2,9 +2,10 @@
 export interface BookingJobData {
     studentId: string;
     teacherId: string;
-    slotId: string;
-    price: number;
-    date : string ; 
+    startTime : string;
+    endTime : string; 
+    price: number; 
+    date : string; 
     request_id: string;
     jobType: 'attempt-booking' | 'create-booking' | 'cancel-booking';
 }

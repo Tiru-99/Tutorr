@@ -37,7 +37,7 @@ export const deleteOverride = async( params : {availabilityId : string}) => {
     return response.data ; 
 }
 
-export const getSlotsByDate = async( params : { dateStart : string, dateEnd : string , timezone : string , teacherId : string}) => {
+export const getSlotsByDate = async( params : { dateStart : string, dateEnd : string , timezone : string , teacherId : string , weekDay : string}) => {
     const response = await axios.get("/api/bookings/availability" , 
         {
             params , 
@@ -85,6 +85,7 @@ export function useGetSlotsByDate(params: {
   dateEnd: string; 
   timezone: string; 
   teacherId: string; 
+  weekDay : string;
 }) {
   return useQuery({
     queryKey: ["slotsByDate", params], 
