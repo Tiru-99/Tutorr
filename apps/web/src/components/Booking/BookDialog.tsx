@@ -260,15 +260,15 @@ export default function BookDialog({ id, price }: { id: string, price: number })
             <Dialog
                 open={isDialogOpen}
                 onOpenChange={(open) => {
-                    setIsDialogOpen(open);
+                    setIsDialogOpen(open)
 
                     if (!open) {
                         // dialog closed → reset selectedSlot
-                        setSelectedSlot({ slot: null, index: null });
-                        setIsPaymentLoading(false);
-                        toast.dismiss(); // Dismiss any active toasts when closing
+                        setSelectedSlot({ slot: null, index: null })
+                        setIsPaymentLoading(false)
+                        toast.dismiss() // Dismiss any active toasts when closing
                     } else {
-                        toast.success("Welcome! Select a date and time slot to book.");
+                        toast.success("Welcome! Select a date and time slot to book.")
                     }
                 }}
             >
@@ -291,7 +291,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                         </div>
 
                         <div className="w-1/2 relative">
-                            <h1 className="text-gray-700 font-semibold text-xl">Available Slots</h1>
+                            <h1 className="text-gray-700 font-semibold text-xl -mt-4">Available Slots</h1>
 
                             {isLoading && (
                                 <div className="flex flex-col justify-center items-center min-h-[100px] gap-3">
@@ -309,7 +309,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                 </div>
                             )}
 
-                            <div className="flex flex-row flex-wrap max-w-full gap-2 mt-2">
+                            <div className="flex flex-row flex-wrap max-w-full gap-2 mt-2 max-h-56 overflow-y-auto pr-2">
                                 {!isLoading && !isError && data?.slots?.length === 0 && (
                                     <div className="text-center py-8">
                                         <div className="text-gray-400 text-4xl mb-2">📅</div>
@@ -320,40 +320,38 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                     </div>
                                 )}
 
-                                {!isLoading && !isError && data?.slots?.length > 0 &&
+                                {!isLoading &&
+                                    !isError &&
+                                    data?.slots?.length > 0 &&
                                     data.slots.map((slot: { startTime: string; endTime: string }, index: number) => {
-                                        const localStart = DateTime.fromISO(slot.startTime, { zone: "utc" })
-                                            .toLocal()
-                                            .toFormat("hh:mm a");
-                                        const localEnd = DateTime.fromISO(slot.endTime, { zone: "utc" })
-                                            .toLocal()
-                                            .toFormat("hh:mm a");
+                                        const localStart = DateTime.fromISO(slot.startTime, { zone: "utc" }).toLocal().toFormat("hh:mm a")
+                                        const localEnd = DateTime.fromISO(slot.endTime, { zone: "utc" }).toLocal().toFormat("hh:mm a")
 
                                         return (
                                             <div
                                                 key={slot.startTime}
                                                 className={`inline-flex items-center rounded-md border cursor-pointer px-2.5 py-0.5 text-sm font-medium text-gray-800 shadow-sm transition-colors ${selectedSlot.index === index
-                                                    ? "bg-blue-500 border-blue-500 text-white hover:bg-blue-500"
-                                                    : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"
+                                                        ? "bg-blue-500 border-blue-500 text-white hover:bg-blue-500"
+                                                        : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"
                                                     }`}
                                                 onClick={() => {
                                                     if (selectedSlot.index === index) {
-                                                        setSelectedSlot({ slot: null, index: null });
-                                                        toast.info("Slot deselected");
+                                                        setSelectedSlot({ slot: null, index: null })
+                                                        toast.info("Slot deselected")
                                                     } else {
-                                                        setSelectedSlot({ slot, index });
-                                                        toast.success(`Selected slot: ${localStart} - ${localEnd}`);
+                                                        setSelectedSlot({ slot, index })
+                                                        toast.success(`Selected slot: ${localStart} - ${localEnd}`)
                                                     }
                                                 }}
                                             >
                                                 {localStart} - {localEnd}
                                             </div>
-                                        );
+                                        )
                                     })}
                             </div>
 
                             <Button
-                                className="absolute bottom-2 left-0 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="absolute bottom-[-1px] left-0 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed "
                                 onClick={handleBook}
                                 disabled={isPending || isPaymentLoading || !selectedSlot.slot}
                             >
