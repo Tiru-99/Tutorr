@@ -14,7 +14,7 @@ export default function Home() {
         setTeacherId(id);
     }, []);
 
-    const { data, isLoading, isError , refetch } = useGetScheduleAndOverrides(teacherId);
+    const { data, isLoading, isError, refetch } = useGetScheduleAndOverrides(teacherId);
 
     console.log("The schedule data coming from the backend is ", data);
 
@@ -30,10 +30,11 @@ export default function Home() {
                         {isLoading && <p>Loading schedule...</p>}
                         {isError && <p>Error loading schedule.</p>}
 
-                        {data && (
+                        {/* Always show ScheduleSection, it will handle missing data internally */}
+                        {!isLoading && !isError && (
                             <ScheduleSection
-                                schedule={data.schedule}
-                                templates={data.templates}
+                                schedule={data?.schedule || null}
+                                templates={data?.templates || null}
                             />
                         )}
                     </div>
@@ -43,14 +44,14 @@ export default function Home() {
                     {/* Override section */}
                     <div className="w-full max-w-4xl">
                         {isLoading && <p>Loading Override</p>}
-                        { data && (
+                        {/* Always show Override component, it will handle missing data internally */}
+                        {!isLoading && !isError && (
                             <Override
-                                overrides = {data.overrides}
-                                refetch = {refetch}
+                                overrides={data?.overrides || []}
+                                refetch={refetch}
                             />
                         )}
                     </div>
-
                 </div>
             </TimezoneProvider>
         </>

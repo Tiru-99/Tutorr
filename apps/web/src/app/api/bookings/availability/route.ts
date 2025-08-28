@@ -37,34 +37,35 @@ export async function GET(req: NextRequest, res: NextResponse) {
         teacherId
       }
     });
-  
+
     if (!schedule || !schedule.duration) {
       return NextResponse.json({
         error: "Schedule or session duration not found"
       }, { status: 404 });
     }
-  
-    const days = schedule.days ; 
-    if(!days.includes(weekDay)){
+
+    const days = schedule.days;
+    if (!days.includes(weekDay)) {
       return NextResponse.json({
-        message : "Teacher is not available for this day",
-        slots : []
-      } , { status : 200 })
+        message: "Teacher is not available for this day",
+        slots: []
+      }, { status: 200 })
     }
-  
+
     const sessionDurationMs = schedule.duration * 60 * 60 * 1000; // Convert hours to milliseconds
-  
+
     // Find overrides
     const overrides = await prisma.availability.findMany({
       where: {
         teacherId,
         startTime: { gte: utcStartDate },
         endTime: { lte: utcEndDate },
+        status: "AVAILABLE"
       },
     });
-  
+
     let slots = [];
-  
+
     if (overrides && overrides.length > 0) {
       for (const override of overrides) {
         const overrideSlots = generateSlots(
@@ -76,13 +77,13 @@ export async function GET(req: NextRequest, res: NextResponse) {
         );
         slots.push(...overrideSlots);
       }
-  
+
       return NextResponse.json({
         message: "All well test message",
-        slots 
+        slots
       }, { status: 200 })
       // Generate slots from overrides
-  
+
     } else {
       // Fallback to template availability
       const availability = await prisma.availability.findFirst({
@@ -90,66 +91,87 @@ export async function GET(req: NextRequest, res: NextResponse) {
           teacherId,
           date: {
             equals: null
-          }
+          },
+          status: 'AVAILABLE'
         }
       });
-  
+
+      // ADD THIS: Get booked overrides to exclude from template slots
+      const bookedOverrides = await prisma.availability.findMany({
+        where: {
+          teacherId,
+          startTime: { gte: utcStartDate },
+          endTime: { lte: utcEndDate },
+          status: "BOOKED"
+        },
+      });
+
       let finalSlots: { startTime: string; endTime: string }[] = [];
-  
+
       // create slots first
       const generatedSlots = createSlots(
         availability?.startTime!,
         availability?.endTime!,
         schedule.duration
       );
-  
+
       // iterate slots
       for (const slot of generatedSlots) {
-        const startTimeOnly = slot.start.toString().split("T")[1].slice(0, 5); // HH:mm
+        const startTimeOnly = slot.start.toString().split("T")[1].slice(0, 5);
         const endTimeOnly = slot.end.toString().split("T")[1].slice(0, 5);
-  
+
         const startTimeforUtcStart = utcStartDate.toISOString().split("T")[1].slice(0, 5);
         const endTimeforUtcEnd = utcEndDate.toISOString().split("T")[1].slice(0, 5);
-  
+
         if (startTimeOnly > startTimeforUtcStart) {
-          // replace the date with utcStartDate's date
-          const datePart = utcStartDate.toISOString().split("T")[0]; // YYYY-MM-DD
+          const datePart = utcStartDate.toISOString().split("T")[0];
           slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
         } else if (startTimeOnly < endTimeforUtcEnd) {
-          // replace the date with utcEndDate's date
-          const datePart = utcEndDate.toISOString().split("T")[0]; // YYYY-MM-DD
+          const datePart = utcEndDate.toISOString().split("T")[0];
           slot.start = `${datePart}T${startTimeOnly}:00.000Z`;
         }
-  
-        // update end date to match adjusted start's date
+
         const datePartForEnd = slot.start.split("T")[0];
         slot.end = `${datePartForEnd}T${endTimeOnly}:00.000Z`;
-  
-        // push the adjusted slot into finalSlots
-        finalSlots.push({
-          startTime: slot.start,
-          endTime: slot.end,
+
+        // ADD THIS: Check if slot conflicts with any booked override
+        const isBooked = bookedOverrides.some(bookedSlot => {
+          const slotStart = new Date(slot.start);
+          const slotEnd = new Date(slot.end);
+          const bookedStart = new Date(bookedSlot.startTime);
+          const bookedEnd = new Date(bookedSlot.endTime);
+
+          // Check for overlap
+          return slotStart < bookedEnd && slotEnd > bookedStart;
         });
+
+        // Only add slot if it's not booked
+        if (!isBooked) {
+          finalSlots.push({
+            startTime: slot.start,
+            endTime: slot.end,
+          });
+        }
       }
-  
+
       console.log("Final Slots:", finalSlots);
-  
+
       // if yes attach it the startUtc Date , and continue with the loop
       // in the else block check if the slots start time is less than the endUTCDate's time 
       // if yes attach it the startUtc Date , and continue with the loop 
-  
+
       return NextResponse.json({
         message: "Slots generated",
         slots: finalSlots
       })
-  
+
     }
   } catch (error) {
     console.log("Something went wrong in the availability route", error);
     return NextResponse.json({
-      message : "Something went wrong in the availability route",
-      error 
-    } , { status : 500 })
+      message: "Something went wrong in the availability route",
+      error
+    }, { status: 500 })
   }
 }
 

@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
             teacherId,
             startTime,
             endTime,
+            sessionId : session.id,
             fencingToken,
             amount,
             date,

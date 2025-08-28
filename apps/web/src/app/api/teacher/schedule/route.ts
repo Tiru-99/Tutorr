@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!schedule) {
-      return NextResponse.json({ error: "No schedule found" }, { status: 404 });
+      return NextResponse.json({ message: "No schedule found" }, { status: 200 });
     }
 
     console.log("The found schedule is " , schedule);

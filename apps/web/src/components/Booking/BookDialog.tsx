@@ -47,6 +47,28 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
     const { Razorpay } = useRazorpay();
 
+
+    if (!date) {
+        return null;
+    }
+    const convertedDate = new Date(date);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const weekDay = convertedDate
+        .toLocaleDateString("en-US", { weekday: "short" })
+        .toUpperCase();
+
+    const { start: dateStart, end: dateEnd } = getDateRange(date);
+
+    const paramsToSend = {
+        dateStart,
+        dateEnd,
+        timezone,
+        teacherId: id,
+        weekDay
+    }
+
+    const { data, isLoading, isError, refetch } = useGetSlotsByDate(paramsToSend);
+
     // Payment initiation effect
     useEffect(() => {
         if (order) {
@@ -62,14 +84,14 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 try {
                     setIsPaymentLoading(true);
                     toast.loading("Initializing payment...", { id: "payment-init" });
-                    
+
                     const id = await verifyAndCheckout(order, studentEmail, studentName, Razorpay);
                     setSessionId(id);
-                    
+
                     toast.dismiss("payment-init");
                     toast.success("Payment gateway opened successfully!");
                     toast.loading("Processing your booking...", { id: "booking-process" });
-                    
+
                 } catch (error) {
                     toast.dismiss("payment-init");
                     toast.error("Failed to initialize payment. Please try again.");
@@ -117,7 +139,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 
             const handleJobUpdate = (data: any) => {
                 console.log(`📨 Received ${jobEventName}:`, data);
-                
+
                 if (data.message) {
                     if (data.error) {
                         toast.error(data.message);
@@ -144,20 +166,22 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 
             const handleOrderUpdate = (data: any) => {
                 console.log(`📨 Received ${orderEventName}:`, data);
-                
+
                 // Dismiss booking process loader when we get any order update
                 toast.dismiss("booking-process");
-                
+
                 if (data.message && !data.error) {
                     toast.success("🎉 Booking completed successfully! Details sent to your email.", { duration: 8000 });
+                    refetch();
+                    setSelectedSlot({ slot: null, index: null });
                 }
-                
+
                 if (data.error || (data.message && data.error)) {
                     toast.error(data.message || "Something went wrong with your booking");
                 }
 
                 if (data.bookingId) {
-                    toast.success(`📋 Booking ID: ${data.bookingId}`, { duration: 5000 });
+                    toast.success(`📋 Booking ID: ${data.bookingId}`, { duration: 2000 });
                 }
             };
 
@@ -172,29 +196,10 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 socket.off(eventName, handler);
             });
         };
-    }, [jobId, order, socket]);
+    }, [jobId, order, socket, refetch]);
 
     // Getting slots per day
-    if (!date) {
-        return null;
-    }
-    const convertedDate = new Date(date);
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const weekDay = convertedDate
-        .toLocaleDateString("en-US", { weekday: "short" })
-        .toUpperCase();
 
-    const { start: dateStart, end: dateEnd } = getDateRange(date);
-
-    const paramsToSend = {
-        dateStart,
-        dateEnd,
-        timezone,
-        teacherId: id,
-        weekDay
-    }
-
-    const { data, isLoading, isError } = useGetSlotsByDate(paramsToSend);
     const newDate = new Date(date);
     console.log("The data coming from the backend is ", data);
 
@@ -287,7 +292,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 
                         <div className="w-1/2 relative">
                             <h1 className="text-gray-700 font-semibold text-xl">Available Slots</h1>
-                            
+
                             {isLoading && (
                                 <div className="flex flex-col justify-center items-center min-h-[100px] gap-3">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -347,11 +352,11 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                     })}
                             </div>
 
-                            <Button 
-                                className="absolute bottom-2 left-0 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" 
+                            <Button
+                                className="absolute bottom-2 left-0 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleBook}
                                 disabled={isPending || isPaymentLoading || !selectedSlot.slot}
-                            > 
+                            >
                                 {isPending || isPaymentLoading ? (
                                     <div className="flex items-center gap-2">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

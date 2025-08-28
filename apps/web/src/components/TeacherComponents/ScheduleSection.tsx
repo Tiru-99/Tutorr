@@ -29,7 +29,7 @@ const timezones = [
 type ScheduleType = {
   timezone: string
   duration: number,
-  days : string[]
+  days: string[]
 }
 
 type TemplateType = {
@@ -44,7 +44,7 @@ interface ScheduleSectionProps {
 
 export default function ScheduleSection({ schedule, templates }: ScheduleSectionProps) {
   // context api reference
-  const { timezone, setTimezone , selectedDays , setSelectedDays } = useScheduleContext()
+  const { timezone, setTimezone, selectedDays, setSelectedDays } = useScheduleContext()
 
   const durationMap = {
     "1 Hour": 1,
@@ -63,33 +63,57 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
   useEffect(() => {
-    if (!schedule || !templates) {
-      return
+    // Always set default values first
+    const defaultTime = { startTime: "9", endTime: "17" };
+    const defaultDuration = 1;
+    const defaultSelectedDays:string[] = [];
+
+    if (!schedule) {
+      // Set default values when schedule is not available
+      setTime(defaultTime);
+      setDuration(defaultDuration);
+      setSelectedDays(defaultSelectedDays);
+      // You can set a default timezone if needed
+      // setTimezone("UTC") // or your preferred default timezone
+      return;
     }
-    const { startTime, endTime } = templates[0]
-    const timezone = schedule.timezone
 
-    const converted = convertToTimezoneHours(startTime, endTime, timezone)
-    console.log("Converted", converted)
-    setTime({
-      startTime: converted.start,
-      endTime: converted.end,
-    })
-    setTimezone(schedule.timezone)
-    setDuration(schedule.duration)
-    setSelectedDays(schedule.days);
+    // Set timezone, duration, and days from schedule
+    if (schedule.timezone) setTimezone(schedule.timezone);
+    if (schedule.duration !== undefined) setDuration(schedule.duration);
+    if (schedule.days) setSelectedDays(schedule.days);
+
+    // Handle time setting based on templates availability
+    if (templates && templates.length > 0) {
+      const { startTime, endTime } = templates[0];
+      const timezone = schedule.timezone;
+
+      if (startTime && endTime && timezone) {
+        const converted = convertToTimezoneHours(startTime, endTime, timezone);
+        console.log("Converted", converted);
+        setTime({
+          startTime: converted.start,
+          endTime: converted.end,
+        });
+      } else {
+        // Use default values if template data is incomplete
+        setTime(defaultTime);
+      }
+    } else {
+      // Use default values when templates is not available
+      setTime(defaultTime);
+    }
   }, [schedule, templates])
-
   // for passing changes from child to parent from smarttimepicker
   const handleTimeChange = (start: string, end: string) => {
     setTime({ startTime: start, endTime: end })
   }
 
- const toggleDays = (day: string) => {
-  setSelectedDays((prev) =>
-    prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]
-  );
-};
+  const toggleDays = (day: string) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]
+    );
+  };
 
   const handleSave = () => {
     // converting it to HH:mm format
@@ -104,7 +128,7 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
       startTime: startTimeToSend,
       endTime: endTimeToSend,
       duration,
-      days : selectedDays
+      days: selectedDays
     }
     console.log("data to send is ", dataToSend)
 

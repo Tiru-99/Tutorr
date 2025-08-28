@@ -99,7 +99,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingCreation(jobData: BookingCreationData) {
-        const { studentId, teacherId, fencingToken, startTime , endTime, paymentId, orderId, amount , date} = jobData;
+        const { studentId, teacherId, fencingToken, startTime , endTime, paymentId, orderId, amount , date , sessionId} = jobData;
         const lockKey = `lock:tutor:${teacherId}:${startTime}`
         
         const eventName = `bookingUpdate/${orderId}`;
@@ -125,6 +125,7 @@ export class BookingWorker extends BaseWorker<any> {
                 startTime,
                 endTime ,
                 paymentId,
+                sessionId,
                 orderId,
                 date
             }
@@ -210,24 +211,16 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async createBooking(bookingData: any) {
-        const { studentId, teacherId, startTime , endTime , paymentId, orderId , date } = bookingData;
+        const { studentId, teacherId, startTime , endTime , paymentId, orderId , date , sessionId} = bookingData;
         //create a meeting url here and save it to the db
         try {
             const meetingLink = createMeeting();
 
             //find booking 
-            const session = await prisma.booking.findFirst({
-                where: {
-                    teacherId,
-                    studentId
-                }
-            });
-
-            if (!session) throw new Error('Session not found');
 
             const booking = await prisma.booking.update({
                 where: {
-                    id: session.id
+                    id: sessionId,
                 },
                 data: {
                     status: 'SUCCESS',
@@ -242,31 +235,28 @@ export class BookingWorker extends BaseWorker<any> {
             //create a teacher Availability as well for that day 
             const schedule = await prisma.schedule.findFirst({
                 where : {
-                    teacherId , 
-                    availability : {
-                        some: {
-                            date 
-                        }
-                    }
+                    teacherId 
                 } , 
                 include : {
                     availability : true
                 }
             });
 
+            console.log("The found schedule is " , schedule);
+
             const availability = schedule?.availability; 
 
-            if(availability?.length === 0){
                 await prisma.availability.create({
                     data : {
                         teacherId,
+                        scheduleId : schedule?.id,
                         date , 
                         startTime , 
                         endTime , 
                         status : "BOOKED"
                     }
                 })
-            }
+            
 
             return booking;
         } catch (error) {

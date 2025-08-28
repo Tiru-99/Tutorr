@@ -21,6 +21,7 @@ export interface BookingCreationData extends BookingJobData {
     orderId: string;
     amount : string ; 
     paymentId: string;
+    sessionId : string; 
 }
 
 export interface BookingResult {
