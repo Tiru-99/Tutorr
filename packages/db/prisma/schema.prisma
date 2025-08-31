@@ -183,19 +183,22 @@ enum BookingStatus {
   PENDING_SUCCESS
   SUCCESS
   FAILED
+  CANCELLED
+  REFUNDED
 }
 
 model Booking {
-  id          String        @id @default(uuid())
-  teacherId   String
-  teacher     Teacher       @relation(fields: [teacherId], references: [id])
-  studentId   String
-  student     Student       @relation(fields: [studentId], references: [id])
-  startTime   DateTime?
-  meeting_url String?
-  payment_id  String?
-  order_id    String?
-  status      BookingStatus
+  id           String         @id @default(uuid())
+  teacherId    String
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+  studentId    String
+  student      Student        @relation(fields: [studentId], references: [id])
+  startTime    DateTime?
+  meeting_url  String?
+  payment_id   String?
+  order_id     String?
+  status       BookingStatus
+  transactions Transactions[]
 }
 
 model Wallet {
@@ -218,12 +221,17 @@ model Transactions {
   teacherId String
   type      TransactionType
   walletId  String
+  bookingId String
   amount    Float
   createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   wallet    Wallet          @relation(fields: [walletId], references: [id])
+  booking   Booking         @relation(fields: [bookingId], references: [id])
 }
 
 enum TransactionType {
   BOOKING
-  REFUND
+  REFUND //platform -> student 
+  PAYOUT //session fee credited to teacher's account after the session  
+  WITHDRAWAL // teacher withdraws money to the bank 
 }
