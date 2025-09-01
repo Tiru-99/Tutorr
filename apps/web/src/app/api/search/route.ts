@@ -194,13 +194,6 @@ import { Prisma } from "@tutorr/db"
 export async function POST(req: NextRequest, res: NextResponse) {
     const { startTime, endTime, topic, date, price, name } = await req.json();
 
-    if (!startTime || !endTime || !topic || !date || !price || !name) {
-        console.log("Missing data send from the frontend");
-        return NextResponse.json({
-            error: "Incomplete data from the frontend sent"
-        }, { status: 403 });
-    }
-
     //extract day of the week from the date and then convert the date in the proper utc format
     // build a query 
     // query requirements : 

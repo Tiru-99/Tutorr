@@ -12,21 +12,21 @@ import { Server as SocketIoServer } from 'socket.io';
 
 export class BookingWorker extends BaseWorker<any> {
     private io: SocketIoServer;
-    constructor(redis: Redis , io : SocketIoServer) {
+    constructor(redis: Redis, io: SocketIoServer) {
         super('booking', redis);
-        this.io = io; 
+        this.io = io;
     }
 
 
     protected async processJob(job: Job<BookingJobData>): Promise<any> {
         const { jobType } = job.data;
-        const jobId = job.id ; 
+        const jobId = job.id;
 
         try {
             //route jobTypes to processes 
             switch (jobType) {
                 case "attempt-booking":
-                    return await this.handleBookingAttempt(job.data , jobId!);
+                    return await this.handleBookingAttempt(job.data, jobId!);
                 case "create-booking":
                     return await this.handleBookingCreation(job.data as BookingCreationData);
                 case "cancel-booking":
@@ -38,10 +38,10 @@ export class BookingWorker extends BaseWorker<any> {
         }
     }
 
-    private async handleBookingAttempt(jobData: BookingJobData , jobId : string) {
-        const { studentId, teacherId, startTime , endTime, request_id, price, date , jobType } = jobData;
+    private async handleBookingAttempt(jobData: BookingJobData, jobId: string) {
+        const { studentId, teacherId, startTime, endTime, request_id, price, date, jobType } = jobData;
         console.log("In the booking attempt section ");
-        console.log("the socket is " , this.io); 
+        console.log("the socket is ", this.io);
         //create a lock key 
         try {
             const lockKey = `lock:tutor:${teacherId}:${startTime}`;
@@ -72,24 +72,24 @@ export class BookingWorker extends BaseWorker<any> {
 
             //store booking context
             await redis.setex(`booking:${order.id}`, 30000, JSON.stringify({
-                studentId, teacherId, startTime , endTime , fencingToken, request_id , date
+                studentId, teacherId, startTime, endTime, fencingToken, request_id, date
             }));
 
             const orderToSend = {
-                key : order.key , 
-                id : order.id ,
-                amount : order.amount , 
-                currency : order.currency
+                key: order.key,
+                id: order.id,
+                amount: order.amount,
+                currency: order.currency
             }
 
             //emit this to the frontned 
             this.io.emit(`bookingUpdate/${jobId}`, {
                 order: orderToSend,
-                success: "true" , 
-                error : null 
+                success: "true",
+                error: null
             })
         } catch (error) {
-            console.log("Something went wrong while attempting booking", error , this.io);
+            console.log("Something went wrong while attempting booking", error, this.io);
             this.io.emit(`bookingUpdate/${jobId}`, {
                 message: "Something went wrong while booking attempt",
                 error: error
@@ -99,22 +99,22 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async handleBookingCreation(jobData: BookingCreationData) {
-        const { studentId, teacherId, fencingToken, startTime , endTime, paymentId, orderId, amount , date , sessionId} = jobData;
+        const { studentId, teacherId, fencingToken, startTime, endTime, paymentId, orderId, amount, date, sessionId } = jobData;
         const lockKey = `lock:tutor:${teacherId}:${startTime}`
-        
+
         const eventName = `bookingUpdate/${orderId}`;
 
         //validate the fencing token 
         try {
             const currentToken = await redis.get(lockKey);
-            console.log("The current token is" , currentToken);
+            console.log("The current token is", currentToken);
             if (!currentToken || parseInt(currentToken) !== fencingToken) {
-                this.io.emit(`bookingUpdate/${orderId}` , {
-                    message : null , 
-                    error : "Invalid or expired fencing token"
+                this.io.emit(`bookingUpdate/${orderId}`, {
+                    message: null,
+                    error: "Invalid or expired fencing token"
                 })
                 throw new Error("Invalid or expired fencing token");
-            
+
             }
             //check if the slot id is template slot of availability slotid
 
@@ -123,65 +123,63 @@ export class BookingWorker extends BaseWorker<any> {
                 studentId,
                 teacherId,
                 startTime,
-                endTime ,
+                endTime,
                 paymentId,
                 sessionId,
                 orderId,
-                date
+                date , 
+                amount 
             }
             const booking = await this.createBooking(bookingData);
 
             if (!booking) {
-                this.io.emit(eventName , {
-                    message : null , 
-                    error : "Something went wrong while creating booking"
+                this.io.emit(eventName, {
+                    message: null,
+                    error: "Something went wrong while creating booking"
                 })
                 throw new Error("Something went wrong while creating booking");
             }
 
             //check if the wallet exists 
-            const wallet = await prisma.wallet.findFirst({
+            let wallet = await prisma.wallet.findFirst({
                 where: {
                     teacherId
                 }
             });
 
-            //convert to string
-            const stringAmount = (parseInt(amount) / 100 ).toFixed(2).toString(); 
-
             if (!wallet) {
-                //create wallet 
                 try {
-                    await prisma.wallet.create({
+                    wallet = await prisma.wallet.create({
                         data: {
                             teacherId,
-                            amount : stringAmount,
+                            amount: "0.00", // String as per schema
                             currency: 'USD'
                         }
                     });
                 } catch (error) {
-                    this.io.emit(eventName , {
-                        message : null , 
-                        error : "Wallet Creation failed"
+                    this.io.emit(eventName, {
+                        message: null,
+                        error: "Wallet Creation failed"
                     });
                     console.log("Wallet Creation failed", error);
+                    return; // exit if wallet creation fails 
                 }
-            } else {
-                //if found update wallet 
-                const updatedAmount = (
-                    parseFloat(wallet.amount) + parseFloat(amount)
-                ).toFixed(2); // keeps 2 decimal places
-
-
-                await prisma.wallet.update({
-                    where: {
-                        teacherId
-                    },
-                    data: {
-                        amount: updatedAmount.toString()
-                    }
-                })
             }
+
+            await prisma.transactions.create({
+                data: {
+                    studentId,
+                    teacherId,
+                    type: "PAYOUT",
+                    walletId: wallet.id,
+                    bookingId: booking.id,
+                    amount: parseFloat(amount) / 100
+
+                }
+            })
+
+            //update the wallet's total balance based on the "WITHDRAWAL" in the cron job
+
 
             //send notification 
             //notification queue here 
@@ -189,9 +187,9 @@ export class BookingWorker extends BaseWorker<any> {
             //release lock 
             await redis.del(lockKey);
 
-            this.io.emit(eventName , {
-                message : "The booking is created successfully",
-                bookingId : booking.id, 
+            this.io.emit(eventName, {
+                message: "The booking is created successfully",
+                bookingId: booking.id,
             });
             return { success: true, bookingId: booking.id };
         } catch (error) {
@@ -200,9 +198,9 @@ export class BookingWorker extends BaseWorker<any> {
             //release lock if anything failed 
             await redis.del(lockKey);
 
-            this.io.emit(eventName , {
-                message : null , 
-                error : "There was some problem while creating booking , please contact support !"
+            this.io.emit(eventName, {
+                message: null,
+                error: "There was some problem while creating booking , please contact support !"
             });
 
             throw new Error(`Booking failed: ${error || "Unknown error"}`);
@@ -211,7 +209,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async createBooking(bookingData: any) {
-        const { studentId, teacherId, startTime , endTime , paymentId, orderId , date , sessionId} = bookingData;
+        const { studentId, teacherId, startTime, endTime, paymentId, orderId, date, sessionId , amount } = bookingData;
         //create a meeting url here and save it to the db
         try {
             const meetingLink = createMeeting();
@@ -223,40 +221,42 @@ export class BookingWorker extends BaseWorker<any> {
                     id: sessionId,
                 },
                 data: {
-                    status: 'SUCCESS',
+                    status: 'SCHEDULED',
                     meeting_url: meetingLink,
                     order_id: orderId,
                     payment_id: paymentId,
-                    startTime 
+                    startTime,
+                    endTime ,
+                    amount : parseFloat(amount)/100
                 }
             });
-            
-            console.log("The date in the worker is " , date); 
+
+            console.log("The date in the worker is ", date);
             //create a teacher Availability as well for that day 
             const schedule = await prisma.schedule.findFirst({
-                where : {
-                    teacherId 
-                } , 
-                include : {
-                    availability : true
+                where: {
+                    teacherId
+                },
+                include: {
+                    availability: true
                 }
             });
 
-            console.log("The found schedule is " , schedule);
+            console.log("The found schedule is ", schedule);
 
-            const availability = schedule?.availability; 
+            const availability = schedule?.availability;
 
-                await prisma.availability.create({
-                    data : {
-                        teacherId,
-                        scheduleId : schedule?.id,
-                        date , 
-                        startTime , 
-                        endTime , 
-                        status : "BOOKED"
-                    }
-                })
-            
+            await prisma.availability.create({
+                data: {
+                    teacherId,
+                    scheduleId: schedule?.id,
+                    date,
+                    startTime,
+                    endTime,
+                    status: "BOOKED"
+                }
+            })
+
 
             return booking;
         } catch (error) {

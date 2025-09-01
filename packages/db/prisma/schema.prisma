@@ -55,6 +55,7 @@ model Teacher {
   Availability      Availability[]
   Bookings          Booking[]
   Wallet            Wallet?
+  Transactions      Transactions[]
 }
 
 model Student {
@@ -68,6 +69,7 @@ model Student {
   banner_pic     String?
   teacher_review TeacherReview[]
   Bookings       Booking[]
+  Transactions   Transactions[]
 }
 
 model TeacherReview {
@@ -181,29 +183,39 @@ model Availability {
 
 enum BookingStatus {
   PENDING_SUCCESS
+  SCHEDULED
   SUCCESS
   FAILED
   CANCELLED
-  REFUNDED
+}
+
+enum CancellationBy {
+  TEACHER
+  STUDENT
 }
 
 model Booking {
-  id           String         @id @default(uuid())
-  teacherId    String
-  teacher      Teacher        @relation(fields: [teacherId], references: [id])
-  studentId    String
-  student      Student        @relation(fields: [studentId], references: [id])
-  startTime    DateTime?
-  meeting_url  String?
-  payment_id   String?
-  order_id     String?
-  status       BookingStatus
-  transactions Transactions[]
+  id                 String          @id @default(uuid())
+  teacherId          String
+  teacher            Teacher         @relation(fields: [teacherId], references: [id])
+  studentId          String
+  student            Student         @relation(fields: [studentId], references: [id])
+  startTime          DateTime?
+  endTime            DateTime?
+  meeting_url        String?
+  payment_id         String?
+  order_id           String?
+  amount             Decimal?
+  cancellationBy     CancellationBy?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  status             BookingStatus
+  transactions       Transactions[]
 }
 
 model Wallet {
   id           String         @id @default(uuid())
-  amount       String
+  amount       Decimal        @default(0.00)
   currency     Currency
   teacherId    String         @unique
   teacher      Teacher        @relation(fields: [teacherId], references: [id])
@@ -216,17 +228,20 @@ enum Currency {
 }
 
 model Transactions {
-  id        String          @id @default(uuid())
-  studentId String
-  teacherId String
-  type      TransactionType
-  walletId  String
-  bookingId String
-  amount    Float
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  wallet    Wallet          @relation(fields: [walletId], references: [id])
-  booking   Booking         @relation(fields: [bookingId], references: [id])
+  id         String          @id @default(uuid())
+  studentId  String
+  teacherId  String
+  type       TransactionType
+  walletId   String
+  bookingId  String
+  amount     Decimal
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  releasedAt DateTime? //Escrow Model 
+  wallet     Wallet          @relation(fields: [walletId], references: [id])
+  booking    Booking         @relation(fields: [bookingId], references: [id])
+  student    Student         @relation(fields: [studentId], references: [id])
+  teacher    Teacher         @relation(fields: [teacherId], references: [id])
 }
 
 enum TransactionType {

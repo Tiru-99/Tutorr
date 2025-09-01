@@ -3,7 +3,8 @@ import axios from 'axios';
 
 interface QueryBody {
     date: Date | null,
-    time: string[] | null,
+    startTime : string | null,
+    endTime : string | null , 
     topic: string[] | null,
     price: number[] | null,
     name: string | null

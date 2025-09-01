@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Star, Filter, CalendarIcon} from "lucide-react"
+import { Search, Star, Filter, CalendarIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useGetTeachersByQuery, useGetAllTeachers } from "@/hooks/queryHook"
@@ -18,7 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Teacher } from "@prisma/client"
 import { Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
+import { DateTime } from "luxon"
 
 export default function Component() {
   const [date, setDate] = useState<Date>();
@@ -31,7 +32,7 @@ export default function Component() {
   const [teacherData, setTeacherData] = useState<Teacher[]>([]);
 
   //router 
-  const router = useRouter(); 
+  const router = useRouter();
 
   //api hook 
   const { mutate, isPending, isError, isSuccess } = useGetTeachersByQuery();
@@ -69,11 +70,30 @@ export default function Component() {
       ];
     }
 
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+
+    const utcTimes = timeToSend.map(time => {
+      const dt = DateTime.fromFormat(time.trim(), "h:mm a", { zone: userTimeZone })
+        .set({ year: 1970, month: 1, day: 1 });
+      if (!dt.isValid) {
+        console.warn("Invalid time parsing:", time);
+        return null;
+      }
+      return dt.toUTC().toISO();
+    });
+
+    const arrlen = utcTimes.length;
+    const startTime = utcTimes[0]; 
+    const endTime = utcTimes[arrlen - 1]; 
+
+
 
     const dataToSend = {
       date: date || null,
       topic: selectedSubjects || null,
-      time: timeToSend || null,
+      startTime : startTime || null,
+      endTime : endTime || null , 
       price: priceRange || null,
       name: searchQuery || null
     }
@@ -412,13 +432,13 @@ export default function Component() {
                       </div>
 
                       <div className="flex flex-wrap gap-1">
-                        {tutor.expertise.slice(0 , 3).map((subject) => (
+                        {tutor.expertise.slice(0, 3).map((subject) => (
                           <Badge key={subject} variant="secondary" className="text-xs">
                             {subject}
                           </Badge>
                         ))}
                         {tutor.expertise.length > 3 && <Badge variant="secondary" className="text-xs">
-                          +{tutor.expertise.length - 3 }
+                          +{tutor.expertise.length - 3}
                         </Badge>}
                       </div>
 
@@ -434,8 +454,8 @@ export default function Component() {
                       </div>
 
                       <Button
-                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                       onClick={() => router.push(`/booking/teacher/${tutor.id}`)}>Book Now</Button>
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => router.push(`/booking/teacher/${tutor.id}`)}>Book Now</Button>
                     </div>
                   </CardContent>
                 </Card>
