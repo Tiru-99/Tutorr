@@ -51,6 +51,15 @@ const createSchedule = async(data : ScheduleData) => {
     const response = await axios.post(`/api/teacher/availabililty` , data , {
         withCredentials : true 
     });
+    return response.data
+}
+
+const fetchWallet = async() => {
+    const response = await axios.get('/api/wallet' , {
+        withCredentials : true
+    });
+    
+    return response.data ; 
 }
 
 export const useGetTeacherDetails = (id : string) => {
@@ -86,5 +95,12 @@ export const useSaveTeacherDetails = () => {
 export const useCreateSchedule = () => {
     return useMutation({
         mutationFn : createSchedule
+    })
+}
+
+export const useGetWallet = () => {
+    return useQuery({
+        queryKey : ["getteacherwallet"],
+        queryFn : fetchWallet
     })
 }
