@@ -38,17 +38,17 @@ export default function PayoutDialog() {
         return
       }
 
-      // Show processing toast
+      
       toast.loading("🏦 Processing your bank withdrawal request...", {
         id: "bank-withdrawal"
       })
 
       razorpayPayout(bankDetails, {
         onSuccess: () => {
-          // Dismiss loading toast
+          
           toast.dismiss("bank-withdrawal")
           
-          // Show success toast
+          
           toast.success("🎉 Withdrawal Successful! Your money is on the way to your bank account.", {
             duration: 4000,
             description: "Your funds will be transferred within 1-2 business days"
@@ -62,10 +62,10 @@ export default function PayoutDialog() {
           }, 2000)
         },
         onError: (error: any) => {
-          // Dismiss loading toast
+          
           toast.dismiss("bank-withdrawal")
           
-          // Show error toast with details
+         
           const errorMessage = error?.response?.data?.message || error?.message || "Failed to process bank payout"
           toast.error("❌ Withdrawal Failed", {
             description: errorMessage,
@@ -81,17 +81,17 @@ export default function PayoutDialog() {
         return
       }
 
-      // Show processing toast
+   
       toast.loading("💳 Processing your PayPal withdrawal request...", {
         id: "paypal-withdrawal"
       })
 
       paypalPayout(paypalEmail, {
         onSuccess: () => {
-          // Dismiss loading toast
+        
           toast.dismiss("paypal-withdrawal")
           
-          // Show success toast
+          
           toast.success("🎉 Withdrawal Successful! Check your PayPal account.", {
             duration: 4000,
             description: "Your funds have been sent to your PayPal email"
