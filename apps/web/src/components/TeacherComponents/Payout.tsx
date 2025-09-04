@@ -107,9 +107,9 @@ export default function PayoutDialog() {
         onError: (error: any) => {
           // Dismiss loading toast
           toast.dismiss("paypal-withdrawal")
-          
+          console.log("The error from backend is " , error); 
           // Show error toast with details
-          const errorMessage = error?.response?.data?.message || error?.message || "Failed to process PayPal payout"
+          const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error || "Failed to process PayPal payout"
           toast.error("❌ Withdrawal Failed", {
             description: errorMessage,
             duration: 5000
