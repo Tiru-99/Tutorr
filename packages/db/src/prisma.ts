@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient , Prisma } from "@prisma/client";
 
 class PrismaInstance {
     private static instance: PrismaClient;
@@ -21,6 +21,8 @@ export const connectDB = async () => {
 export const disconnectDB = async () => {
     await prisma.$disconnect();
 };
+
+export { Prisma }
 
 export default prisma;
 

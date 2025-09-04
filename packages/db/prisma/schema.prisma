@@ -29,34 +29,33 @@ enum UserType {
 }
 
 model Teacher {
-  id                  String                @id @default(uuid())
-  userId              String                @unique
-  user                User                  @relation(fields: [userId], references: [id])
-  phone_number        String?
-  name                String?
-  company_name        String?
-  highest_education   String?
-  years_of_exp        String?
-  about               String?
-  license             String? //link of the pdf document
-  expertise           String[]
-  session_duration    String?
-  start_time          String?
-  end_time            String?
-  available_days      String[]
-  subject             String?
-  profile_pic         String?
-  banner_pic          String?
-  price               Int?
-  average_rating      String?
-  razorpay_cust_id    String?
-  teacher_review      TeacherReview[]
-  session             Session[]
-  TeacherAvailability TeacherAvailability[]
-  //Template slots
-  SessionDetails      SlotDetails[]
-  TemplateSlots       TemplateSlots[]
-  Wallet              Wallet?
+  id                String          @id @default(uuid())
+  userId            String          @unique
+  user              User            @relation(fields: [userId], references: [id])
+  phone_number      String?
+  name              String?
+  company_name      String?
+  highest_education String?
+  years_of_exp      String?
+  about             String?
+  license           String? //link of the pdf document
+  expertise         String[]
+  session_duration  String?
+  start_time        String?
+  end_time          String?
+  available_days    String[]
+  subject           String?
+  profile_pic       String?
+  banner_pic        String?
+  price             Int?
+  average_rating    String?
+  razorpay_cust_id  String?
+  teacher_review    TeacherReview[]
+  Schedule          Schedule[]
+  Availability      Availability[]
+  Bookings          Booking[]
+  Wallet            Wallet?
+  Transactions      Transactions[]
 }
 
 model Student {
@@ -69,7 +68,8 @@ model Student {
   profile_pic    String?
   banner_pic     String?
   teacher_review TeacherReview[]
-  session        Session[]
+  Bookings       Booking[]
+  Transactions   Transactions[]
 }
 
 model TeacherReview {
@@ -82,83 +82,140 @@ model TeacherReview {
   rating    Int
 }
 
-model Session {
-  id             String        @id @default(uuid())
-  teacherId      String        
-  teacher        Teacher       @relation(fields: [teacherId], references: [id])
-  studentId      String        
-  student        Student       @relation(fields: [studentId], references: [id])
+// model Session {
+//   id        String  @id @default(uuid())
+//   teacherId String
+//   teacher   Teacher @relation(fields: [teacherId], references: [id])
+//   studentId String
+//   student   Student @relation(fields: [studentId], references: [id])
 
-  //Optional slot references
-  slotId         String?        @unique
-  slot           SlotDetails?   @relation(fields: [slotId], references: [id])
+//   //Optional slot references
+//   slotId String?      @unique
+//   slot   SlotDetails? @relation(fields: [slotId], references: [id])
 
-  templateSlotId String?   @unique 
-  templateSlot  TemplateSlots?   @relation(fields : [templateSlotId] , references: [id])
-  meeting_url    String?
-  payment_id     String?
-  order_id       String?
-  booking_status BookingStatus
+//   templateSlotId String?        @unique
+//   templateSlot   TemplateSlots? @relation(fields: [templateSlotId], references: [id])
+//   meeting_url    String?
+//   payment_id     String?
+//   order_id       String?
+//   booking_status BookingStatus
+// }
+
+// enum BookingStatus {
+//   PENDING_SUCCESS
+//   SUCCESS
+//   FAILED
+// }
+
+// enum SessionStatus {
+//   SCHEDULED
+//   COMPLETED
+// }
+
+// model TemplateSlots {
+//   id        String     @id @default(uuid())
+//   teacherId String
+//   teacher   Teacher    @relation(fields: [teacherId], references: [id])
+//   slotTime  String
+//   status    StatusType
+//   session   Session?
+// }
+
+// model TeacherAvailability {
+//   id          String        @id @default(uuid())
+//   teacherId   String
+//   teacher     Teacher       @relation(fields: [teacherId], references: [id])
+//   date        String?
+//   dayOfWeek   String?
+//   isAvailable Boolean?
+//   SlotDetails SlotDetails[]
+
+//   @@unique([teacherId, date])
+// }
+
+// model SlotDetails {
+//   id                    String               @id @default(uuid())
+//   //Direct teacher relationship for (default / template) slots
+//   teacherId             String?
+//   teacher               Teacher?             @relation(fields: [teacherId], references: [id])
+//   //for availability relationship (for data specific slots)
+//   teacherAvailabilityId String?
+//   availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id], onDelete: Cascade)
+//   status                StatusType           @default(AVAILABLE)
+//   slotTime              String?
+//   session               Session?
+
+//   @@unique([teacherId, slotTime])
+//   @@unique([teacherAvailabilityId, slotTime])
+// }
+
+//used the cal.com approach to fix redundancy
+model Schedule {
+  id           String         @id @default(uuid())
+  teacherId    String         @unique
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+  timezone     String
+  duration     Int
+  days         String[]
+  availability Availability[]
+}
+
+enum OverrideStatus {
+  BOOKED
+  UNAVAILABLE
+  CANCELLED
+  AVAILABLE
+}
+
+//compulsorily link availability to schedule
+model Availability {
+  id           String          @id @default(uuid())
+  teacherId    String
+  teacher      Teacher         @relation(fields: [teacherId], references: [id])
+  startTime    DateTime
+  endTime      DateTime //1970-01-01T00:00:00Z format
+  date         DateTime?
+  availability Boolean         @default(true)
+  scheduleId   String?
+  status       OverrideStatus? @default(AVAILABLE)
+  Schedule     Schedule?       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 }
 
 enum BookingStatus {
   PENDING_SUCCESS
+  SCHEDULED
   SUCCESS
   FAILED
-}
-
-enum SessionStatus {
-  SCHEDULED
-  COMPLETED
-}
-
-model TemplateSlots {
-  id        String     @id @default(uuid())
-  teacherId String
-  teacher   Teacher    @relation(fields: [teacherId], references: [id])
-  slotTime  String
-  status    StatusType
-  session   Session?
-}
-
-model TeacherAvailability {
-  id          String        @id @default(uuid())
-  teacherId   String
-  teacher     Teacher       @relation(fields: [teacherId], references: [id])
-  date        String?
-  dayOfWeek   String?
-  isAvailable Boolean?
-  SlotDetails SlotDetails[]
-
-  @@unique([teacherId, date])
-}
-
-model SlotDetails {
-  id                    String               @id @default(uuid())
-  //Direct teacher relationship for (default / template) slots
-  teacherId             String?
-  teacher               Teacher?             @relation(fields: [teacherId], references: [id])
-  //for availability relationship (for data specific slots)
-  teacherAvailabilityId String?
-  availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id], onDelete: Cascade)
-  status                StatusType           @default(AVAILABLE)
-  slotTime              String?
-  session               Session?
-
-  @@unique([teacherId, slotTime])
-  @@unique([teacherAvailabilityId, slotTime])
-}
-
-enum StatusType {
-  BOOKED
-  AVAILABLE
   CANCELLED
-  UNAVAILABLE
+}
+
+enum CancellationBy {
+  TEACHER
+  STUDENT
+}
+
+model Booking {
+  id                 String          @id @default(uuid())
+  teacherId          String
+  teacher            Teacher         @relation(fields: [teacherId], references: [id])
+  studentId          String
+  student            Student         @relation(fields: [studentId], references: [id])
+  startTime          DateTime?
+  endTime            DateTime?
+  meeting_url        String?
+  payment_id         String?
+  order_id           String?
+  amount             Decimal?
+  cancellationBy     CancellationBy?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  status             BookingStatus
+  transactions       Transactions[]
 }
 
 model Wallet {
   id           String         @id @default(uuid())
-  amount       String
+  amount       Decimal        @default(0.00)
   currency     Currency
   teacherId    String         @unique
   teacher      Teacher        @relation(fields: [teacherId], references: [id])
@@ -171,17 +228,25 @@ enum Currency {
 }
 
 model Transactions {
-  id        String          @id @default(uuid())
-  studentId String
-  teacherId String
-  type      TransactionType
-  walletId  String
-  amount    Float
-  createdAt DateTime        @default(now())
-  wallet    Wallet          @relation(fields: [walletId], references: [id])
+  id         String          @id @default(uuid())
+  studentId  String
+  teacherId  String
+  type       TransactionType
+  walletId   String
+  bookingId  String
+  amount     Decimal
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  releasedAt DateTime? //Escrow Model 
+  wallet     Wallet          @relation(fields: [walletId], references: [id])
+  booking    Booking         @relation(fields: [bookingId], references: [id])
+  student    Student         @relation(fields: [studentId], references: [id])
+  teacher    Teacher         @relation(fields: [teacherId], references: [id])
 }
 
 enum TransactionType {
   BOOKING
-  REFUND
+  REFUND //platform -> student 
+  PAYOUT //session fee credited to teacher's account after the session  
+  WITHDRAWAL // teacher withdraws money to the bank 
 }
