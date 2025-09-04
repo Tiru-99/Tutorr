@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useGetWallet } from "@/hooks/teacherProfileHooks"
 import { WalletSkeleton } from "@/components/Loaders/WalletSkeleton"
 import { Inbox } from "lucide-react"
+import PayoutDialog from "@/components/TeacherComponents/Payout"
 
 // Transaction Types
 enum TransactionType {
@@ -43,7 +44,7 @@ export default function WalletPage() {
     })
     const pageSize = 7
 
-    const { data, isLoading, error } = useGetWallet()
+    const { data, isLoading, error , refetch} = useGetWallet()
 
     if (isLoading) return <WalletSkeleton />
     if (error || !data) return <div className="p-6 text-red-500">Error fetching wallet</div>
@@ -59,7 +60,7 @@ export default function WalletPage() {
                     <p className="text-sm text-muted-foreground">Track your balance, pending amounts, and recent transactions.</p>
                 </header>
 
-                <Button className="hover:cursor-pointer"> Connect Payout </Button>
+                <PayoutDialog/>
             </div>
 
             {/* Summary Cards */}

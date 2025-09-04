@@ -214,12 +214,12 @@ model Booking {
 }
 
 model Wallet {
-  id           String         @id @default(uuid())
-  amount       Decimal        @default(0.00)
-  currency     Currency
-  teacherId    String         @unique
-  teacher      Teacher        @relation(fields: [teacherId], references: [id])
-  transactions Transactions[]
+  id            String         @id @default(uuid())
+  amount        Decimal        @default(0.00)
+  currency      Currency
+  teacherId     String         @unique
+  teacher       Teacher        @relation(fields: [teacherId], references: [id])
+  transactions  Transactions[]
 }
 
 enum Currency {
@@ -229,18 +229,18 @@ enum Currency {
 
 model Transactions {
   id         String          @id @default(uuid())
-  studentId  String
+  studentId  String?
   teacherId  String
   type       TransactionType
   walletId   String
-  bookingId  String
+  bookingId  String?
   amount     Decimal
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
   releasedAt DateTime? //Escrow Model 
   wallet     Wallet          @relation(fields: [walletId], references: [id])
-  booking    Booking         @relation(fields: [bookingId], references: [id])
-  student    Student         @relation(fields: [studentId], references: [id])
+  booking    Booking?        @relation(fields: [bookingId], references: [id])
+  student    Student?        @relation(fields: [studentId], references: [id])
   teacher    Teacher         @relation(fields: [teacherId], references: [id])
 }
 
@@ -249,4 +249,5 @@ enum TransactionType {
   REFUND //platform -> student 
   PAYOUT //session fee credited to teacher's account after the session  
   WITHDRAWAL // teacher withdraws money to the bank 
+  COMPLETED
 }

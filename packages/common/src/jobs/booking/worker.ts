@@ -41,7 +41,6 @@ export class BookingWorker extends BaseWorker<any> {
     private async handleBookingAttempt(jobData: BookingJobData, jobId: string) {
         const { studentId, teacherId, startTime, endTime, request_id, price, date, jobType } = jobData;
         console.log("In the booking attempt section ");
-        console.log("the socket is ", this.io);
         //create a lock key 
         try {
             const lockKey = `lock:tutor:${teacherId}:${startTime}`;
@@ -65,7 +64,7 @@ export class BookingWorker extends BaseWorker<any> {
                 currency: 'USD',
                 receipt: `receipt_${request_id}`,
             }
-
+            console.log("Coming here before order part")
             const order: any = await createOrder(options);
 
             console.log("the order is ", order);
@@ -88,8 +87,8 @@ export class BookingWorker extends BaseWorker<any> {
                 success: "true",
                 error: null
             })
-        } catch (error) {
-            console.log("Something went wrong while attempting booking", error, this.io);
+        } catch (error : any) {
+            console.log("Something went wrong while attempting booking", error);
             this.io.emit(`bookingUpdate/${jobId}`, {
                 message: "Something went wrong while booking attempt",
                 error: error
