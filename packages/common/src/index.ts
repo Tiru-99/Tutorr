@@ -7,3 +7,5 @@ export default redis ;
 export { BookingQueue } from './jobs/booking/queue'; 
 export * from './jobs/booking/types'; 
 export * from './jobs/booking/worker'; 
+export * from './jobs/background/queue';
+export * from './jobs/background/worker';

@@ -184,7 +184,7 @@ model Availability {
 enum BookingStatus {
   PENDING_SUCCESS
   SCHEDULED
-  SUCCESS
+  COMPLETED
   FAILED
   CANCELLED
 }

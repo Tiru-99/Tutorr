@@ -60,7 +60,7 @@ export class BookingWorker extends BaseWorker<any> {
             }
 
             const options = {
-                amount: price * 100, //convert to paise 
+                amount: price * 100, 
                 currency: 'USD',
                 receipt: `receipt_${request_id}`,
             }
