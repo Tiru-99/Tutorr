@@ -1,0 +1,19 @@
+{
+  "name": "@tutorr/emails",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@react-email/components": "^0.5.2",
+    "resend": "^6.0.2"
+  }
+}

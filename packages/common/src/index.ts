@@ -5,6 +5,8 @@ export * from './config/createOrder';
 export * from './config/razorpay';
 export default redis ; 
 export { BookingQueue } from './jobs/booking/queue'; 
+export { NotificationQueue } from './jobs/notification/queue';
+export { NotificationWorker } from './jobs/notification/worker'
 export * from './jobs/booking/types'; 
 export * from './jobs/booking/worker'; 
 export * from './jobs/background/queue';

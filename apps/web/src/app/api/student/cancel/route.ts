@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 import { razorpay } from "@tutorr/common";
+import { NotificationQueue } from "@tutorr/common";
+import redis from "@tutorr/common";
 
 export async function POST(req: NextRequest) {
     const { bookingId, reason } = await req.json();
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     try {
         // Database operations in transaction
-        const dbResult = await prisma.$transaction(async (tx) => {
+        const dbResult = await prisma.$transaction(async (tx : any) => {
             // Find booking
             const booking = await tx.booking.findFirst({
                 where: {
@@ -100,6 +102,13 @@ export async function POST(req: NextRequest) {
                     };
                 }
             }
+
+            const notificationQueue = new NotificationQueue(redis);
+            notificationQueue.addBookingNotification({
+                bookingId : booking.id ,
+                jobType : "cancel-booking",
+                startTime : booking.startTime
+            })
 
             return { updatedBooking, refundAmount: 0, paymentId: null };
         });
