@@ -1,16 +1,5 @@
-// Folder: emails/
-// ├─ templates/
-// │  ├─ shared.tsx
-// │  ├─ InstantBookingConfirmation.tsx
-// │  ├─ OneHourBeforeReminder.tsx
-// │  ├─ OnTimeReminder.tsx
-// │  └─ CancellationNotification.tsx
-// ├─ EmailService.tsx
-// └─ index.ts
-
 // =========================================
 // File: emails/templates/shared.tsx
-// Shared styles and layout components for all emails
 // =========================================
 import * as React from "react";
 import {
@@ -24,15 +13,16 @@ import {
   Text,
   Heading,
   Button,
-  Link
+  Link,
 } from "@react-email/components";
 
 export type BaseEmailProps = {
   studentName: string;
   teacherName: string;
-  meetingTime: string | Date; // ISO string or Date
+  meetingTime: string | Date;
   meetingLink: string;
   bookingId: string;
+  recipientRole: "STUDENT" | "TEACHER";
 };
 
 export const BRAND = {
@@ -92,9 +82,7 @@ export function formatWhen(meetingTime: string | Date, locale = "en-IN") {
   return `${date} at ${time}`;
 }
 
-export const BrandHeader: React.FC<{ title: string } & Partial<BaseEmailProps>> = ({
-  title,
-}) => (
+export const BrandHeader: React.FC<{ title: string }> = ({ title }) => (
   <Section style={headerStyle}>
     <Heading as="h2" style={{ margin: 0, color: BRAND.text }}>
       {title}
@@ -105,7 +93,10 @@ export const BrandHeader: React.FC<{ title: string } & Partial<BaseEmailProps>> 
   </Section>
 );
 
-export const CtaButton: React.FC<{ href: string; label?: string }> = ({ href, label = "Join Meeting" }) => (
+export const CtaButton: React.FC<{ href: string; label?: string }> = ({
+  href,
+  label = "Join Meeting",
+}) => (
   <Button
     href={href}
     style={{
@@ -122,7 +113,10 @@ export const CtaButton: React.FC<{ href: string; label?: string }> = ({ href, la
   </Button>
 );
 
-export const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+export const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({
+  label,
+  value,
+}) => (
   <Section style={{ marginTop: 8 }}>
     <Text style={{ margin: 0, color: BRAND.muted, fontSize: 12 }}>{label}</Text>
     <Text style={{ margin: 0, color: BRAND.text, fontWeight: 600 }}>{value}</Text>
@@ -132,9 +126,12 @@ export const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ l
 export const BrandFooter: React.FC = () => (
   <Section style={footerStyle}>
     <Text style={{ margin: 0 }}>
-      Need help? Reply to this email or visit <Link href="https://example.com/support">Support</Link>.
+      Need help? Reply to this email or visit{" "}
+      <Link href="https://example.com/support">Support</Link>.
     </Text>
-    <Text style={{ margin: 0 }}>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</Text>
+    <Text style={{ margin: 0 }}>
+      © {new Date().getFullYear()} {BRAND.name}. All rights reserved.
+    </Text>
   </Section>
 );
 
@@ -156,4 +153,3 @@ export const EmailShell: React.FC<{
     </Body>
   </Html>
 );
-

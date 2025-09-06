@@ -3,15 +3,16 @@
 // =========================================
 import * as React from "react";
 import { render, renderAsync } from "@react-email/render";
-import { Resend } from "resend";
-import nodemailer from 'nodemailer'
-import dotenv from 'dotenv'
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
 import InstantBookingConfirmation from "../templates/InstantBookingConfirmation";
 import OneHourBeforeReminder from "../templates/OneHourBeforeReminder";
 import OnTimeReminder from "../templates/OnTimeReminder";
 import CancellationNotification from "../templates/CancellationNotfication";
 
-dotenv.config({ path: '../../.env' })
+dotenv.config({ path: "../../.env" });
+
 // ===== Types =====
 export type NotificationType =
   | "instant"
@@ -26,6 +27,8 @@ export interface NotificationData {
   meetingTime: string | Date;
   meetingLink: string;
   bookingId: string;
+  studentEmail: string;
+  teacherEmail: string;
   cancelledBy?: "STUDENT" | "TEACHER" | "SYSTEM";
   from?: string; // fallback to env default
   locale?: string; // date/time formatting locale
@@ -46,7 +49,7 @@ const SUBJECTS: Record<NotificationType, string> = {
 
 function getTemplate(
   type: NotificationType,
-  data: NotificationData
+  data: NotificationData & { recipientRole: "STUDENT" | "TEACHER" }
 ): React.ReactElement {
   const common = {
     studentName: data.studentName,
@@ -54,6 +57,7 @@ function getTemplate(
     meetingTime: data.meetingTime,
     meetingLink: data.meetingLink,
     bookingId: data.bookingId,
+    recipientRole: data.recipientRole, // ✅ pass it down
   } as const;
 
   switch (type) {
@@ -73,27 +77,22 @@ function getTemplate(
   }
 }
 
-// Try to use `render` if available (sync), otherwise fallback to `renderAsync`
+// Handle sync vs async render
 async function renderHtml(element: React.ReactElement) {
-  if (typeof render === "function") {
-    try {
-      return render(element, { pretty: true });
-    } catch {
-      // fall back in case render is async in your version
-      return await renderAsync(element, { pretty: true });
-    }
+  try {
+    return render(element, { pretty: true });
+  } catch {
+    return await renderAsync(element, { pretty: true });
   }
-  return await renderAsync(element, { pretty: true });
 }
+
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Using Gmail as the service, but you can change it to others (e.g., SendGrid)
+  service: "gmail",
   auth: {
-    user: process.env.GMAIL_USER, // Your Gmail address from .env
-    pass: process.env.GMAIL_PASS, // Your Gmail app password from .env
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
-
-
 
 export async function sendEmail(
   type: NotificationType,
@@ -101,39 +100,37 @@ export async function sendEmail(
 ): Promise<SendEmailResponse[]> {
   const results: SendEmailResponse[] = [];
 
-  // If data.to is an array, send individually
   const recipients = Array.isArray(data.to) ? data.to : [data.to];
 
   for (const recipient of recipients) {
-    // Generate HTML for each recipient (optional: personalize)
+    // ✅ Determine role based on matching emails
+    const role: "STUDENT" | "TEACHER" =
+      recipient === data.studentEmail ? "STUDENT" : "TEACHER";
+
     const element = getTemplate(type, {
       ...data,
-      to: recipient, // pass current recipient to template if needed
+      recipientRole: role,
     });
+
     const html = await renderHtml(element);
 
-    try {
-      const info = await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: recipient,
-        subject: SUBJECTS[type],
-        html,
-      });
+    const res = await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: recipient,
+      subject: SUBJECTS[type],
+      html,
+    });
 
-      console.log(`Email sent to ${recipient}:`, info.messageId);
-      results.push({ id: info.messageId, status: "sent" });
-    } catch (error) {
-      console.error(`Email failed for ${recipient}:`, error);
-      results.push({ status: "error", error });
-    }
+    results.push({ id: res.messageId, status: "sent" });
   }
 
   return results;
 }
-// Helper to render without sending (useful for previews and tests)
+
+// Helper to render without sending
 export async function renderEmailHtml(
   type: NotificationType,
-  data: NotificationData
+  data: NotificationData & { recipientRole: "STUDENT" | "TEACHER" }
 ) {
   const element = getTemplate(type, data);
   return await renderHtml(element);

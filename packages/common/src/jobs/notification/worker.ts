@@ -68,7 +68,9 @@ export class NotificationWorker extends BaseWorker<any> {
             teacherName: booking.teacher.name!,
             meetingTime: booking.startTime!,
             meetingLink: booking.meeting_url!,
-            bookingId: booking.id
+            bookingId: booking.id,
+            studentEmail: booking.student.user.email,  // ✅ added
+            teacherEmail: booking.teacher.user.email,  // ✅ added
         }
 
         return await sendEmail(jobType as NotificationType, notificationData);
@@ -118,7 +120,9 @@ export class NotificationWorker extends BaseWorker<any> {
             meetingTime: booking.startTime!,
             meetingLink: booking.meeting_url!,
             bookingId: booking.id,
-            cancelledBy: booking.cancellationBy ?? "SYSTEM"
+            cancelledBy: booking.cancellationBy ?? "SYSTEM",
+            studentEmail: booking.student.user.email,  // ✅ added
+            teacherEmail: booking.teacher.user.email,  // ✅ added
         }
 
         return await sendEmail("cancel-booking", notificationData);

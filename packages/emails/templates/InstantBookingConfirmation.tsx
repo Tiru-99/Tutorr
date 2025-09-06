@@ -1,47 +1,45 @@
 import * as React from "react";
-import { EmailShell, BaseEmailProps, CtaButton, InfoRow, formatWhen } from "./Shared";
+import {
+  EmailShell,
+  BaseEmailProps,
+  CtaButton,
+  InfoRow,
+  formatWhen,
+} from "./Shared";
 import { Text } from "@react-email/components";
 
+export type InstantBookingConfirmationProps = BaseEmailProps;
 
-export type InstantBookingConfirmationProps = BaseEmailProps & {
-    studentName: string;
-};
+const InstantBookingConfirmation: React.FC<
+  InstantBookingConfirmationProps
+> = ({ studentName, teacherName, meetingTime, meetingLink, bookingId, recipientRole }) => {
+  const isStudent = recipientRole === "STUDENT";
 
-
-const InstantBookingConfirmation: React.FC<InstantBookingConfirmationProps> = ({
-    studentName,
-    teacherName,
-    meetingTime,
-    meetingLink,
-    bookingId,
-}) => (
+  return (
     <EmailShell
-        preview={`Booking confirmed with ${teacherName} on ${formatWhen(meetingTime)}.`}
-        title="Booking Confirmed"
+      preview={`Booking confirmed with ${isStudent ? teacherName : studentName} on ${formatWhen(meetingTime)}.`}
+      title="Booking Confirmed"
     >
-        <Text style={{ marginTop: 0 }}>
-            Hi {studentName},
-        </Text>
-        <Text>
-            Your session with <strong>{teacherName}</strong> is confirmed. Save the details below and feel free to share the meeting link with your calendar.
-        </Text>
+      <Text style={{ marginTop: 0 }}>
+        Hi {isStudent ? studentName : teacherName},
+      </Text>
+      <Text>
+        Your session with{" "}
+        <strong>{isStudent ? teacherName : studentName}</strong> is confirmed.
+      </Text>
 
+      <InfoRow label="When" value={formatWhen(meetingTime)} />
+      <InfoRow
+        label={isStudent ? "Teacher" : "Student"}
+        value={isStudent ? teacherName : studentName}
+      />
+      <InfoRow label="Booking ID" value={`#${bookingId}`} />
 
-        <InfoRow label="When" value={formatWhen(meetingTime)} />
-        <InfoRow label="Teacher" value={teacherName} />
-        <InfoRow label="Booking ID" value={`#${bookingId}`} />
-
-
-        <div style={{ marginTop: 16 }}>
-            <CtaButton href={meetingLink} label="Open Meeting Room" />
-        </div>
-
-
-        <Text style={{ marginTop: 16, fontSize: 12 }}>
-            Tip: Add this to your calendar to avoid missing the session.
-        </Text>
+      <div style={{ marginTop: 16 }}>
+        <CtaButton href={meetingLink} label="Open Meeting Room" />
+      </div>
     </EmailShell>
-);
-
+  );
+};
 
 export default InstantBookingConfirmation;
