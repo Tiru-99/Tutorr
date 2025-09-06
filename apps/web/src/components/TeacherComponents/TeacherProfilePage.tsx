@@ -35,7 +35,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
             setSessionSlots(slots);
         }
-    }, [teacher]);
+    }, [teacher ]);
 
 
 
@@ -161,12 +161,12 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
                     {/* Show LicenseComponent on all except md (tablet) */}
                     <div className="block md:hidden lg:block">
-                        <LicenseComponent price={teacher.price} />
+                        <LicenseComponent price={teacher.price} id ={teacher.id} />
                     </div>
 
                     {/* Show TabletLicenseComponent only on md (tablet) screens */}
                     <div className="hidden md:block lg:hidden">
-                        <TabletLicenseComponent price={teacher.price} />
+                        <TabletLicenseComponent price={teacher.price} id={teacher.id} />
                     </div>
                 </div>
             </TeacherProvider>

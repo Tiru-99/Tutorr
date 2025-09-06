@@ -74,6 +74,8 @@ model Student {
 
 model TeacherReview {
   id        String  @id @default(uuid())
+  bookingId String @unique 
+  booking   Booking @relation(fields: [bookingId] , references: [id])
   teacherId String
   teacher   Teacher @relation(fields: [teacherId], references: [id])
   studentId String
@@ -211,6 +213,7 @@ model Booking {
   cancellationReason String?
   status             BookingStatus
   transactions       Transactions[]
+  reviews            TeacherReview?
 }
 
 model Wallet {

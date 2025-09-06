@@ -9,6 +9,7 @@ import { useGetBookingsForStudents, useCancelBookingForStudent } from "@/hooks/b
 import { format } from "date-fns"
 import { useState, useMemo } from "react"
 import { toast } from "sonner"
+import { ReviewDialog } from "@/components/StudentComponents/ReviewDialog"
 
 type Booking = {
   id: string
@@ -163,10 +164,19 @@ export default function Home() {
                         {format(new Date(booking.endTime), "hh:mm a")}
                       </p>
                     </div>
-                    <p className="text-sm flex items-center gap-2 text-green-600">
-                      <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                      Completed
-                    </p>
+
+                    <div className="flex items-center gap-4">
+                      <p className="text-sm flex items-center gap-2 text-green-600">
+                        <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                        Completed
+                      </p>
+
+                      {/* Review Dialog Button */}
+                      <ReviewDialog
+                        bookingId={booking.id}
+                      />
+                    </div>
+
                   </CardContent>
                 </Card>
               ))
