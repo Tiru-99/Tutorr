@@ -8,6 +8,8 @@ import { createOrder } from "../../config/createOrder";
 import prisma from '@tutorr/db';
 import { createMeeting } from "../../config/createMeeting";
 import { Server as SocketIoServer } from 'socket.io';
+import { NotificationQueue } from "../notification/queue";
+import { NotificationType } from "@tutorr/emails";
 
 
 export class BookingWorker extends BaseWorker<any> {
@@ -41,7 +43,6 @@ export class BookingWorker extends BaseWorker<any> {
     private async handleBookingAttempt(jobData: BookingJobData, jobId: string) {
         const { studentId, teacherId, startTime, endTime, request_id, price, date, jobType } = jobData;
         console.log("In the booking attempt section ");
-        console.log("the socket is ", this.io);
         //create a lock key 
         try {
             const lockKey = `lock:tutor:${teacherId}:${startTime}`;
@@ -61,11 +62,11 @@ export class BookingWorker extends BaseWorker<any> {
             }
 
             const options = {
-                amount: price * 100, //convert to paise 
+                amount: price * 100,
                 currency: 'USD',
                 receipt: `receipt_${request_id}`,
             }
-
+            console.log("Coming here before order part")
             const order: any = await createOrder(options);
 
             console.log("the order is ", order);
@@ -88,8 +89,8 @@ export class BookingWorker extends BaseWorker<any> {
                 success: "true",
                 error: null
             })
-        } catch (error) {
-            console.log("Something went wrong while attempting booking", error, this.io);
+        } catch (error: any) {
+            console.log("Something went wrong while attempting booking", error);
             this.io.emit(`bookingUpdate/${jobId}`, {
                 message: "Something went wrong while booking attempt",
                 error: error
@@ -127,8 +128,8 @@ export class BookingWorker extends BaseWorker<any> {
                 paymentId,
                 sessionId,
                 orderId,
-                date , 
-                amount 
+                date,
+                amount
             }
             const booking = await this.createBooking(bookingData);
 
@@ -178,11 +179,21 @@ export class BookingWorker extends BaseWorker<any> {
                 }
             })
 
-            //update the wallet's total balance based on the "WITHDRAWAL" in the cron job
-
 
             //send notification 
-            //notification queue here 
+            //notification queue here
+            const notificationQueue = new NotificationQueue(redis);
+
+            const jobTypes: NotificationType[] = ["instant", "one-hour-before", "on-time"];
+            
+            jobTypes.forEach((jobType) => {
+                notificationQueue.addBookingNotification({
+                    bookingId: booking.id,
+                    startTime: booking.startTime,
+                    jobType,
+                });
+            });
+
 
             //release lock 
             await redis.del(lockKey);
@@ -209,7 +220,7 @@ export class BookingWorker extends BaseWorker<any> {
     }
 
     private async createBooking(bookingData: any) {
-        const { studentId, teacherId, startTime, endTime, paymentId, orderId, date, sessionId , amount } = bookingData;
+        const { studentId, teacherId, startTime, endTime, paymentId, orderId, date, sessionId, amount } = bookingData;
         //create a meeting url here and save it to the db
         try {
             const meetingLink = createMeeting();
@@ -226,8 +237,8 @@ export class BookingWorker extends BaseWorker<any> {
                     order_id: orderId,
                     payment_id: paymentId,
                     startTime,
-                    endTime ,
-                    amount : parseFloat(amount)/100
+                    endTime,
+                    amount: parseFloat(amount) / 100
                 }
             });
 

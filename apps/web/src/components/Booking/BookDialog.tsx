@@ -48,16 +48,14 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     const { Razorpay } = useRazorpay();
 
 
-    if (!date) {
-        return null;
-    }
-    const convertedDate = new Date(date);
+    const safeDate = date ?? new Date(); 
+    const convertedDate = new Date(safeDate);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const weekDay = convertedDate
         .toLocaleDateString("en-US", { weekday: "short" })
         .toUpperCase();
 
-    const { start: dateStart, end: dateEnd } = getDateRange(date);
+    const { start: dateStart, end: dateEnd } = getDateRange(safeDate);
 
     const paramsToSend = {
         dateStart,
@@ -200,7 +198,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
 
     // Getting slots per day
 
-    const newDate = new Date(date);
+    const newDate = new Date(safeDate);
     console.log("The data coming from the backend is ", data);
 
     newDate.setUTCHours(0, 0, 0, 0);

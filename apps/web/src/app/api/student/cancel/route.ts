@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 import { razorpay } from "@tutorr/common";
+import { NotificationQueue } from "@tutorr/common";
+import redis from "@tutorr/common";
 
 export async function POST(req: NextRequest) {
     const { bookingId, reason } = await req.json();
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     try {
         // Database operations in transaction
-        const dbResult = await prisma.$transaction(async (tx) => {
+        const dbResult = await prisma.$transaction(async (tx: any) => {
             // Find booking
             const booking = await tx.booking.findFirst({
                 where: {
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            if(!booking.startTime || !booking.endTime){
+            if (!booking.startTime || !booking.endTime) {
                 throw new Error("No start time or end Time found in the booking")
             }
 
@@ -93,6 +95,12 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
+                    const notificationQueue = new NotificationQueue(redis);
+                    notificationQueue.cancelBookingNotification({
+                        bookingId: booking.id,
+                        jobType: "cancel-booking",
+                    })
+
                     return {
                         updatedBooking,
                         refundAmount,
@@ -100,6 +108,8 @@ export async function POST(req: NextRequest) {
                     };
                 }
             }
+
+
 
             return { updatedBooking, refundAmount: 0, paymentId: null };
         });
@@ -125,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
         console.error("Cancellation error:", error);
-        
+
         return NextResponse.json({
             error: error instanceof Error ? error.message : "Cancellation failed"
         }, { status: 400 });
