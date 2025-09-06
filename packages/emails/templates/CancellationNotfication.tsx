@@ -24,7 +24,7 @@ const CancellationNotification: React.FC<CancellationNotificationProps> = ({
             Hi {studentName},
         </Text>
         <Text>
-            We’re sorry to inform you that your session with <strong>{teacherName}</strong> has been cancelled ({cancelledBy}).
+            We’re sorry to inform you that your session with <strong>{teacherName}</strong> has been cancelled by the ({cancelledBy.toLocaleLowerCase()}).
         </Text>
 
 

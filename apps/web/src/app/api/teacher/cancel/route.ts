@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     try {
         // Database operations in transaction
-        const dbResult = await prisma.$transaction(async (tx:any) => {
+        const dbResult = await prisma.$transaction(async (tx: any) => {
             // Find booking
             const booking = await tx.booking.findFirst({
                 where: {
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            if(!booking.startTime || !booking.endTime){
+            if (!booking.startTime || !booking.endTime) {
                 throw new Error("No start time or end Time found in the booking")
             }
 
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
                 if (wallet) {
                     const originalAmount = parseFloat(booking.amount.toString());
-                    const refundAmount = originalAmount ; // 95% refund for student cancellation
+                    const refundAmount = originalAmount; // 95% refund for student cancellation
 
                     await tx.transactions.create({
                         data: {
@@ -94,6 +94,12 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
+                    const notificationQueue = new NotificationQueue(redis);
+                    notificationQueue.cancelBookingNotification({
+                        bookingId: booking.id,
+                        jobType: "cancel-booking",
+                    })
+
                     return {
                         updatedBooking,
                         refundAmount,
@@ -102,12 +108,6 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            const notificationQueue = new NotificationQueue(redis);
-            notificationQueue.addBookingNotification({
-                bookingId : booking.id ,
-                jobType : "cancel-booking",
-                startTime : booking.startTime
-            })
 
             return { updatedBooking, refundAmount: 0, paymentId: null };
         });
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
         console.error("Cancellation error:", error);
-        
+
         return NextResponse.json({
             error: error instanceof Error ? error.message : "Cancellation failed"
         }, { status: 400 });

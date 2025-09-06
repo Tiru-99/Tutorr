@@ -49,7 +49,7 @@ export class NotificationQueue extends BaseQueue<any> {
         return { success: true }
     }
 
-    protected async cancelBookingNotification(jobData: CancelBookingNotificationType) {
+    async cancelBookingNotification(jobData: CancelBookingNotificationType) {
         const { bookingId} = jobData;
 
         // Job IDs to remove

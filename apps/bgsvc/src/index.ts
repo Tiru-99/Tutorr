@@ -1,6 +1,6 @@
 import express from 'express';
 import redis from '@tutorr/common';
-import { BackgroundJobQueue, BackgroundJobWorker, NotificationQueue , NotificationWorker} from '@tutorr/common';
+import { BackgroundJobQueue, BackgroundJobWorker, NotificationQueue, NotificationWorker } from '@tutorr/common';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -28,32 +28,33 @@ let notificationWorker: any;
 const startWorkers = async () => {
     try {
         console.log("🚀 Starting workers...");
-        
+
         // Wait for background job worker to be ready
         await backgroundJobWorker.waitUntilReady();
         console.log("✅ Background job worker is ready");
-        
+
         // Create and start notification worker
         // Replace 'NotificationWorker' with the actual class name from your common package
-      
+
         notificationWorker = new NotificationWorker(redis);
         await notificationWorker.waitUntilReady();
         console.log("✅ Notification worker is ready and listening for jobs");
-        
+
         // Add the recurring background job
         await backgroundJobQueue.addJob(
             "bgsq",
             {},
             {
-                repeat: { every: 12 * 60 * 60 * 1000 }, // 12 hours
+                jobId: "bgsq", // make sure jobId is consistent
+                repeat: { every: 12 * 60 * 60 * 1000 },
                 attempts: 3,
-                backoff: { type: 'exponential', delay: 5000 }
+                backoff: { type: "exponential", delay: 5000 },
             }
         );
         console.log("✅ Recurring background job scheduled (every 12 hours)");
-        
+
         console.log("✅ All workers are running and ready to process jobs");
-        
+
     } catch (error) {
         console.error("❌ Failed to start workers:", error);
         throw error;
@@ -103,30 +104,30 @@ const gracefulShutdown = async (signal: string) => {
     console.log(`🛑 Received ${signal}. Shutting down gracefully...`);
     try {
         console.log("🔄 Stopping workers...");
-        
+
         // Close workers in reverse order
         if (notificationWorker && typeof notificationWorker.close === 'function') {
             await notificationWorker.close();
             console.log("✅ Notification worker closed");
         }
-        
+
         if (backgroundJobWorker && typeof backgroundJobWorker.close === 'function') {
             await backgroundJobWorker.close();
             console.log("✅ Background job worker closed");
         }
-        
+
         console.log("🔄 Closing server...");
         server.close(() => {
             console.log("✅ Server closed successfully");
             process.exit(0);
         });
-        
+
         // Force exit after 30 seconds if graceful shutdown fails
         setTimeout(() => {
             console.error("❌ Forceful shutdown after timeout");
             process.exit(1);
         }, 30000);
-        
+
     } catch (err) {
         console.error("❌ Error during shutdown:", err);
         process.exit(1);

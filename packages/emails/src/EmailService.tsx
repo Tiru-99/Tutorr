@@ -4,12 +4,14 @@
 import * as React from "react";
 import { render, renderAsync } from "@react-email/render";
 import { Resend } from "resend";
-
+import nodemailer from 'nodemailer'
+import dotenv from 'dotenv'
 import InstantBookingConfirmation from "../templates/InstantBookingConfirmation";
 import OneHourBeforeReminder from "../templates/OneHourBeforeReminder";
 import OnTimeReminder from "../templates/OnTimeReminder";
 import CancellationNotification from "../templates/CancellationNotfication";
 
+dotenv.config({ path: '../../.env' })
 // ===== Types =====
 export type NotificationType =
   | "instant"
@@ -83,33 +85,51 @@ async function renderHtml(element: React.ReactElement) {
   }
   return await renderAsync(element, { pretty: true });
 }
+const transporter = nodemailer.createTransport({
+  service: "gmail", // Using Gmail as the service, but you can change it to others (e.g., SendGrid)
+  auth: {
+    user: process.env.GMAIL_USER, // Your Gmail address from .env
+    pass: process.env.GMAIL_PASS, // Your Gmail app password from .env
+  },
+});
+
+
 
 export async function sendEmail(
   type: NotificationType,
   data: NotificationData
-): Promise<SendEmailResponse> {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+): Promise<SendEmailResponse[]> {
+  const results: SendEmailResponse[] = [];
 
-  const element = getTemplate(type, data);
-  const html = await renderHtml(element);
+  // If data.to is an array, send individually
+  const recipients = Array.isArray(data.to) ? data.to : [data.to];
 
-  const from =
-    data.from ?? process.env.RESEND_FROM_EMAIL ?? "noreply@yourdomain.com";
-
-  try {
-    const result = await resend.emails.send({
-      from,
-      to: data.to,
-      subject: SUBJECTS[type],
-      html,
+  for (const recipient of recipients) {
+    // Generate HTML for each recipient (optional: personalize)
+    const element = getTemplate(type, {
+      ...data,
+      to: recipient, // pass current recipient to template if needed
     });
+    const html = await renderHtml(element);
 
-    return { id: (result as any)?.id, status: "sent" };
-  } catch (error) {
-    return { status: "error", error };
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to: recipient,
+        subject: SUBJECTS[type],
+        html,
+      });
+
+      console.log(`Email sent to ${recipient}:`, info.messageId);
+      results.push({ id: info.messageId, status: "sent" });
+    } catch (error) {
+      console.error(`Email failed for ${recipient}:`, error);
+      results.push({ status: "error", error });
+    }
   }
-}
 
+  return results;
+}
 // Helper to render without sending (useful for previews and tests)
 export async function renderEmailHtml(
   type: NotificationType,
