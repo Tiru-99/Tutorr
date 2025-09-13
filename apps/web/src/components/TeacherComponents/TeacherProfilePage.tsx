@@ -8,6 +8,7 @@ import { useState } from "react";
 import { TeacherProvider } from "@/context/TeacherContext";
 import { useEffect } from "react";
 import { DateTime } from "luxon";
+import ProfileLazyLoader from "../Loaders/ProfilePageLoader";
 
 
 export default function TeacherProfilePage({ id }: { id: string }) {
@@ -40,7 +41,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
 
 
     if (isLoading) {
-        return <div>Loading teacher Profile...</div>;
+        return <ProfileLazyLoader/>;
     }
 
     if (isError) {
@@ -55,7 +56,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
         <>
             {/* for the context api */}
             <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []} sessionDuration={teacher?.session_duration} id={id}>
-                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-28">
+                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full  ">
                     <div className="lg:w-3/4 w-full">
                         <div className="border border-gray-300 ">
                             <div className="relative">

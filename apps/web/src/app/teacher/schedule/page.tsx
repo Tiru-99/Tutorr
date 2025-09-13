@@ -4,6 +4,7 @@ import ScheduleSection from "@/components/TeacherComponents/ScheduleSection";
 import Override from "@/components/TeacherComponents/Override";
 import { TimezoneProvider } from "@/context/ScheduleContext";
 import { useGetScheduleAndOverrides } from "@/hooks/overrideHooks";
+import ScheduleLazyLoader from "@/components/Loaders/ScheduleLazyLoader";
 
 export default function Home() {
     const [teacherId, setTeacherId] = useState("");
@@ -27,7 +28,7 @@ export default function Home() {
                         <h2 className="font-bold text-3xl mb-6">
                             Schedule Management
                         </h2>
-                        {isLoading && <p>Loading schedule...</p>}
+                        {isLoading && <ScheduleLazyLoader/>}
                         {isError && <p>Error loading schedule.</p>}
 
                         {/* Always show ScheduleSection, it will handle missing data internally */}
@@ -43,7 +44,7 @@ export default function Home() {
 
                     {/* Override section */}
                     <div className="w-full max-w-4xl">
-                        {isLoading && <p>Loading Override</p>}
+                        {isLoading && <ScheduleLazyLoader/>}
                         {/* Always show Override component, it will handle missing data internally */}
                         {!isLoading && !isError && (
                             <Override

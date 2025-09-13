@@ -10,6 +10,7 @@ import { format } from "date-fns"
 import { useState, useMemo } from "react"
 import { toast } from "sonner"
 import { ReviewDialog } from "@/components/StudentComponents/ReviewDialog"
+import { Loader } from "@/components/Loaders/ NormalLoader"
 
 type Booking = {
   id: string
