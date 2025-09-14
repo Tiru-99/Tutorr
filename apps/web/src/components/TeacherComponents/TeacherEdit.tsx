@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, Camera, Upload } from "lucide-react";
 import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProfileHooks";
-import { DateTime } from 'luxon';
+import TeacherEditSkeleton from "../Loaders/TeacherEditSkeleton";
+import { toast } from "sonner";
 
 
 interface ImageType {
@@ -26,12 +27,7 @@ interface TeacherData {
   years_of_exp: string,
   about: string,
   expertise: string[],
-  session_duration: string,
-  start_time: string,
-  end_time: string,
-  available_days: string[],
   price: number,
-  timezone: string,
 }
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
@@ -42,7 +38,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     banner_pic: "",
     license: ""
   })
-  const timezones = Intl.supportedValuesOf("timeZone");
+
   const [dataToSend, setDataToSend] = useState<TeacherData>({
     name: teacher?.name || "",
     email: teacher?.user.email || "",
@@ -52,12 +48,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     years_of_exp: teacher?.years_of_exp || "",
     about: teacher?.about || "",
     expertise: teacher?.expertise || "",
-    session_duration: teacher?.session_duration || "",
-    start_time: teacher?.start_time || "",
-    end_time: teacher?.end_time || "",
-    available_days: teacher?.available_days || "",
-    price: teacher?.price || null,
-    timezone: teacher?.timezone || null
+    price: teacher?.price || 0
   })
   const [files, setFiles] = useState<ImageType>({
     profile_pic: null,
@@ -65,11 +56,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     license: null
   })
   const [selectedExpertise, setSelectedExpertise] = useState(["English", "Maths", "History"])
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [sessionTime, setSessionTime] = useState("1 Hour")
-  const [startTime, setStartTime] = useState({ hour: "06", minute: "00" })
-  const [endTime, setEndTime] = useState({ hour: "12", minute: "00" })
-
   //useEffect 
   useEffect(() => {
     if (teacher) {
@@ -82,28 +68,8 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         years_of_exp: teacher?.years_of_exp || "",
         about: teacher?.about || "",
         expertise: teacher?.expertise || "",
-        session_duration: teacher?.session_duration || "",
-        start_time: teacher?.start_time || "",
-        end_time: teacher?.end_time || "",
-        available_days: teacher?.available_days || "",
         price: teacher?.price || null,
-        timezone: teacher?.timezone || null
       });
-      if (teacher?.start_time) {
-        const dt = DateTime.fromISO(teacher.start_time, { zone: "utc" }).toLocal();
-        setStartTime({
-          hour: dt.hour.toString().padStart(2, '0'),
-          minute: dt.minute.toString().padStart(2, '0')
-        });
-      }
-
-      if (teacher?.end_time) {
-        const dt = DateTime.fromISO(teacher.end_time, { zone: "utc" }).toLocal();
-        setEndTime({
-          hour: dt.hour.toString().padStart(2, '0'),
-          minute: dt.minute.toString().padStart(2, '0')
-        });
-      }
 
       if (teacher?.license) {
         setIncomingFiles((prev) => ({ ...prev, license: teacher.license }));
@@ -119,26 +85,12 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       }
 
       setSelectedExpertise(teacher?.expertise);
-      setSelectedDays(teacher?.available_days);
-      if (teacher?.startTime) {
-        setStartTime({
-          hour: teacher.startTime.slice(0, 2),
-          minute: teacher.startTime.slice(2, 4),
-        });
-      }
-      if (teacher?.endTime) {
-        setStartTime({
-          hour: teacher.endTime.slice(0, 2),
-          minute: teacher.endTime.slice(2, 4)
-        })
-      }
     }
   }, [teacher])
   //refs 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const expertiseOptions = ["English", "Maths", "History", "I.T", "Development", "Geography"];
-  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
   const toggleExpertise = (expertise: string) => {
     setSelectedExpertise((prev) =>
@@ -146,10 +98,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     )
   }
 
-  const toggleDays = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]);
-  }
 
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -201,83 +149,13 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       setFiles((prev) => ({ ...prev, license: file }));
     }
   };
-
-  const validateTime = ({ hour, minute }: { hour: number; minute: number }) => {
-    if (hour < 0 || hour > 24) {
-      return "Please enter a correct hour value (0–24)";
-    }
-    if (minute < 0 || minute >= 60) {
-      return "Please enter a correct minute value (0–59)";
-    }
-    if (hour == 23 && minute === 60) {
-      return "Mai Pagal dikhta hu kya bsdk!"
-    }
-    if (hour == 24) {
-      return "Pagal lavde !"
-    }
-    return null; // valid
-  };
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-
-    const startHour = parseInt(startTime.hour, 10);
-    const startMinute = parseInt(startTime.minute, 10);
-
-    const errorMessage = validateTime({ hour: startHour, minute: startMinute });
-
-    if (errorMessage) {
-      alert(errorMessage);
-      return;
-    }
-
-    const endHour = parseInt(endTime.hour, 10);
-    const endMinute = parseInt(endTime.minute, 10);
-
-    const errorMessage2 = validateTime({ hour: endHour, minute: endMinute });
-
-    if (errorMessage2) {
-      alert(errorMessage2);
-      return;
-    }
-
-    if (startHour > endHour) {
-      alert("Invalid starting and ending  times");
-      return;
-    }
-
-    if (selectedDays.length === 0) {
-      alert("Please choose Avaiable days");
-      return;
-    }
-
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const localStartTime = DateTime.fromObject(
-      { hour: startHour, minute: startMinute },
-      { zone: zone }
-    );
-
-    const finalStartTime = localStartTime.toUTC().toISO();
-
-    const localEndTime = DateTime.fromObject(
-      { hour: endHour, minute: endMinute },
-      { zone: zone }
-    )
-
-    const finalEndTime = localEndTime.toUTC().toISO();
-
-    if (!finalStartTime || !finalEndTime) {
-      return null;
-    }
 
     const finalDataToSend: TeacherData =
     {
       ...dataToSend,
-      start_time: finalStartTime,
-      end_time: finalEndTime,
-      available_days: selectedDays,
       expertise: selectedExpertise,
-      session_duration: sessionTime
     }
 
     console.log("final data to send is", finalDataToSend);
@@ -306,13 +184,23 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       console.log(`${pair[0]}: ${pair[1]}`);
     }
 
-    mutate(formData);
-    // ✅ continue with submission logic here
+    mutate(formData , {
+      onSuccess : () => {
+        toast.success("Changes saved sucessfully !")
+      } , 
+      onError : () => {
+        toast.error("Something went wrong while saving")
+      }
+    });
+
   };
 
-
-
-  console.log("The data is", dataToSend)
+  if (isLoading) {
+    return <TeacherEditSkeleton />
+  }
+  if (isError) {
+    return <div>Something went wrong while loading</div>
+  }
   return (
     <form onSubmit={handleSubmit}>
       <div className="min-h-screen bg-gray-50 p-4 flex justify-center">
@@ -449,16 +337,20 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
                 </div>
-                <div>
+                <div className="w-full max-w-xs">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Name your price</label>
-                  <input
-                    type="number"
-                    placeholder="Enter price in USD"
-                    value={dataToSend.price}
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs"
-                    onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      placeholder="Enter price in USD"
+                      value={dataToSend.price}
+                      onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    />
+                  </div>
                 </div>
+
 
                 {/* Upload License */}
                 <div>

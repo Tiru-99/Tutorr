@@ -10,7 +10,7 @@ import { format } from "date-fns"
 import { useState, useMemo } from "react"
 import { toast } from "sonner"
 import { ReviewDialog } from "@/components/StudentComponents/ReviewDialog"
-import { Loader } from "@/components/Loaders/ NormalLoader"
+import { BookingSkeleton } from "@/components/Loaders/BookingLoader"
 
 type Booking = {
   id: string
@@ -69,7 +69,7 @@ export default function Home() {
     )
   }
 
-  if (isLoading) return <p>Loading bookings...</p>
+  if (isLoading) return <BookingSkeleton/>
   if (isError) return <p>Failed to load bookings</p>
   if (!data?.bookings) return <p>No bookings found</p>
 
@@ -96,7 +96,7 @@ export default function Home() {
             ) : (
               paginatedScheduled.map((booking) => (
                 <Card key={booking.id} className="rounded-xl shadow-sm border">
-                  <CardContent className="flex justify-between items-center py-4">
+                   <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 py-4">
                     <div>
                       <p className="font-semibold">{format(new Date(booking.startTime), "MMM dd, yyyy")}</p>
                       <p className="text-gray-600 text-sm">
@@ -105,7 +105,9 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <Button variant="default" onClick={() => window.open(booking.meeting_url, "_blank")}>
+                      <Button variant="default"
+                      className="bg-blue-700 hover:bg-blue-500 hover:cursor-pointer"
+                      onClick={() => window.open(booking.meeting_url, "_blank")}>
                         Join now
                       </Button>
                       <Button

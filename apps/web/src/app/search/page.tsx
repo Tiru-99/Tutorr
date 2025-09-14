@@ -20,6 +20,8 @@ import { Teacher } from "@prisma/client"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { DateTime } from "luxon"
+import { StudentNavbar } from "@/components/StudentComponents/Navbar"
+import Navbar from "@/components/Common/UnauthorizedNavbar"
 
 export default function Component() {
   const [date, setDate] = useState<Date>();
@@ -30,6 +32,7 @@ export default function Component() {
   const [selectedTime, setSelectedTime] = useState<string>();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [teacherData, setTeacherData] = useState<Teacher[]>([]);
+  const [allowStudentNavbar, setAllowStudentNavbar] = useState<boolean>(false);
 
   //router 
   const router = useRouter();
@@ -42,6 +45,11 @@ export default function Component() {
   useEffect(() => {
     if (data) {
       setTeacherData(data.teachers);
+    }
+
+    const type = localStorage.getItem("type");
+    if (type === "STUDENT") {
+      setAllowStudentNavbar(true);
     }
   }, [data]);
 
@@ -84,16 +92,16 @@ export default function Component() {
     });
 
     const arrlen = utcTimes.length;
-    const startTime = utcTimes[0]; 
-    const endTime = utcTimes[arrlen - 1]; 
+    const startTime = utcTimes[0];
+    const endTime = utcTimes[arrlen - 1];
 
 
 
     const dataToSend = {
       date: date || null,
       topic: selectedSubjects || null,
-      startTime : startTime || null,
-      endTime : endTime || null , 
+      startTime: startTime || null,
+      endTime: endTime || null,
       price: priceRange || null,
       name: searchQuery || null
     }
@@ -111,10 +119,9 @@ export default function Component() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">Listings for "Software Development"</h1>
-
+      <div className="bg-white">
+        <div className="container mx-auto px-4 md:max-w-full">
+          {allowStudentNavbar === true ? <StudentNavbar></StudentNavbar> : <Navbar/>}
           {/* Search Bar */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
 
@@ -122,7 +129,7 @@ export default function Component() {
             {/* Mobile Filter Button */}
             <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" className="lg:hidden flex items-center gap-2">
+                <Button variant="outline" className="lg:hidden flex items-center gap-2 mt-4">
                   <Filter className="w-4 h-4" />
                   Filters
                 </Button>
@@ -163,40 +170,6 @@ export default function Component() {
                       </div>
                     </div>
 
-                    {/* Experience Level to implement this later  */}
-                    {/* <div>
-                      <h3 className="font-medium text-gray-900 mb-3">Experience</h3>
-                      <div className="space-y-2">
-                        {["0-2 years", "3-5 years", "6-10 years", "10+ years"].map((exp) => (
-                          <div key={exp} className="flex items-center space-x-2">
-                            <Checkbox id={`mobile-${exp}`} />
-                            <label htmlFor={`mobile-${exp}`} className="text-sm text-gray-700">
-                              {exp}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div> */}
-
-                    {/* Rating To do : Implement rating based filter  */}
-                    {/* <div>
-                      <h3 className="font-medium text-gray-900 mb-3">Rating</h3>
-                      <div className="space-y-2">
-                        {[5, 4, 3, 2, 1].map((rating) => (
-                          <div key={rating} className="flex items-center space-x-2">
-                            <Checkbox id={`mobile-rating-${rating}`} />
-                            <label
-                              htmlFor={`mobile-rating-${rating}`}
-                              className="flex items-center text-sm text-gray-700"
-                            >
-                              <span className="mr-1">{rating}</span>
-                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              <span className="ml-1">& up</span>
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div> */}
 
                     {/* Subjects */}
                     <div>

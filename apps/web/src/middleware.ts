@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from 'jose';
+import path from "path";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get('jwtToken')?.value;
-  
+  const { pathname } = req.nextUrl; 
+  console.log("the pathname is " , pathname)
   console.log("Middleware running, token present:", !!token);
+
+  if(pathname == "/api/teacher/fetch" || pathname == "/api/search"){
+    return NextResponse.next(); 
+  }
   
-  if (!token) {
+  if (!token ) {
     return new NextResponse(
       JSON.stringify({ message: "Incoming Token not found" }),
       { status: 401 }
@@ -48,6 +54,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/api/((?!auth/|search/).+)",
+    "/api/((?!auth/).+)",
   ],
 };
