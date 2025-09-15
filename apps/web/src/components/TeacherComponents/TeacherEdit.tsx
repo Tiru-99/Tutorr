@@ -5,6 +5,8 @@ import { ChevronLeft, Camera, Upload } from "lucide-react";
 import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProfileHooks";
 import TeacherEditSkeleton from "../Loaders/TeacherEditSkeleton";
 import { toast } from "sonner";
+import { teacherDataSchema } from "@tutorr/common/schema";
+import { z } from 'zod';
 
 
 interface ImageType {
@@ -150,48 +152,61 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     }
   };
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      const validatedData = teacherDataSchema.parse(dataToSend);
 
-    const finalDataToSend: TeacherData =
-    {
-      ...dataToSend,
-      expertise: selectedExpertise,
-    }
+      const finalDataToSend: TeacherData =
+      {
+        ...dataToSend,
+        expertise: selectedExpertise,
+      }
 
-    console.log("final data to send is", finalDataToSend);
+      console.log("final data to send is", finalDataToSend);
 
-    const formData = new FormData();
-    //do formAppend logically instead of writing each line manually
-    Object.keys(finalDataToSend).forEach((key) => {
-      const value = finalDataToSend[key as keyof TeacherData];
-      //form append for arrays
-      if (Array.isArray(value) || typeof value === 'object') {
-        formData.append(key, JSON.stringify(value));
+      const formData = new FormData();
+      //do formAppend logically instead of writing each line manually
+      Object.keys(finalDataToSend).forEach((key) => {
+        const value = finalDataToSend[key as keyof TeacherData];
+        //form append for arrays
+        if (Array.isArray(value) || typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+
+      //to append files 
+      Object.entries(files).forEach(([key, file]) => {
+        if (file) {
+          formData.append(key, file);
+        }
+      });
+
+      // To check the formData content:
+      for (const pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+
+      mutate(formData, {
+        onSuccess: () => {
+          toast.success("Changes saved sucessfully !")
+        },
+        onError: () => {
+          toast.error("Something went wrong while saving")
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = (error as z.ZodError).issues.map(issue => {
+          const field = issue.path.join('.');
+          return `${issue.message}`;
+        });
+        toast.error(fieldErrors.join(' , '));
       } else {
-        formData.append(key, String(value));
+        console.error('Unexpected error during form submission:', error);
       }
-    });
-
-    //to append files 
-    Object.entries(files).forEach(([key, file]) => {
-      if (file) {
-        formData.append(key, file);
-      }
-    });
-
-    // To check the formData content:
-    for (const pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
     }
-
-    mutate(formData , {
-      onSuccess : () => {
-        toast.success("Changes saved sucessfully !")
-      } , 
-      onError : () => {
-        toast.error("Something went wrong while saving")
-      }
-    });
 
   };
 

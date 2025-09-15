@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, Camera, Loader2, ImageIcon } from "lucide-react";
 import StudentEditSkeleton from "@/components/Loaders/StudentEditLoader"
 import { toast } from "sonner";
+import { studentDataSchema } from "@tutorr/common/schema";
+import { z } from "zod";
 
 interface FileType {
   profile_pic: File | null;
@@ -94,24 +96,38 @@ export default function StudentEdit() {
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", dataToSend.name);
-    formData.append("phone_number", dataToSend.phoneNo);
-    formData.append("interests", JSON.stringify(dataToSend.interests));
-    formData.append("email", data.email);
+    try {
+      e.preventDefault();
+      const validatedData = studentDataSchema.parse(dataToSend);
+      const formData = new FormData();
+      formData.append("name", dataToSend.name);
+      formData.append("phone_number", dataToSend.phoneNo);
+      formData.append("interests", JSON.stringify(dataToSend.interests));
+      formData.append("email", data.email);
 
-    if (files.profile_pic) formData.append("profile_pic", files.profile_pic);
-    if (files.banner_pic) formData.append("banner_pic", files.banner_pic);
+      if (files.profile_pic) formData.append("profile_pic", files.profile_pic);
+      if (files.banner_pic) formData.append("banner_pic", files.banner_pic);
 
-    mutate(formData, {
-      onSuccess: () => {
-        toast.success("Profile updated successfully ");
-      },
-      onError: () => {
-        toast.error("Failed to update profile. Please try again ");
-      },
-    });
+      mutate(formData, {
+        onSuccess: () => {
+          toast.success("Profile updated successfully ");
+        },
+        onError: () => {
+          toast.error("Failed to update profile. Please try again ");
+        },
+      });
+      
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = (error as z.ZodError).issues.map(issue => {
+          const field = issue.path.join('.');
+          return `${issue.message}`;
+        });
+        toast.error(fieldErrors.join(' , '));
+      } else {
+        console.error('Unexpected error during form submission:', error);
+      }
+    }
   };
 
   if (isLoading) {

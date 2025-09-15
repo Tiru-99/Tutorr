@@ -5,7 +5,7 @@ import LicenseComponent from "./LicenseAndReviews";
 import { useRouter } from "next/navigation";
 import ProfileLazyLoader from "../Loaders/ProfilePageLoader";
 import { Award , University , Briefcase} from "lucide-react";
-
+import { teacherDataSchema } from "@tutorr/common/schema";
 
 export default function TeacherProfilePage({ id }: { id: string }) {
     const { data: teacher, isLoading, isError } = useGetTeacherDetails(id);

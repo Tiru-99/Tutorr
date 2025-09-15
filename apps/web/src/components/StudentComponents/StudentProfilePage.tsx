@@ -3,10 +3,12 @@
 import { Mail, Phone } from "lucide-react"
 import { useGetStudentProfile } from "@/hooks/studentProfileHooks"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
 
 export default function StudentProfilePage({ id }: { id: string }) {
   console.log("The incoming id is", id)
   const { data: student, isLoading, isError } = useGetStudentProfile(id)
+  const router = useRouter(); 
 
   if (isLoading) {
     return (
@@ -98,7 +100,8 @@ export default function StudentProfilePage({ id }: { id: string }) {
 
               {/* Edit Details Link */}
               <div className="flex justify-center md:justify-end md:pb-3">
-                <button className="text-primary hover:text-primary/80 underline text-sm sm:text-base transition-colors">
+                <button className="text-primary hover:text-primary/80 hover:cursor-pointer underline text-sm sm:text-base transition-colors"
+                onClick={() => router.push("/student/edit")}>
                   Edit Details
                 </button>
               </div>

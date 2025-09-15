@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import LogoutButton from "../Common/LogoutButton"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useLogout } from "@/hooks/authHooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -25,6 +25,7 @@ export function StudentNavbar() {
     logout(undefined, {
       onSuccess: () => {
         router.push("/auth/login");
+        toast.success("Logged out successfully , redirecting to login page")
       },
     });
   };

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
 import { useLogout } from "@/hooks/authHooks";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function LogoutButton() {
 
@@ -14,6 +15,7 @@ export default function LogoutButton() {
         logout(undefined, {
             onSuccess: () => {
                 router.push("/auth/login");
+                toast.success("Logged out successfully , redirecting to sign in page")
             },
         });
     };

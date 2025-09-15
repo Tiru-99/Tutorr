@@ -1,15 +1,20 @@
 'use client'
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // <- added this
+import { useRouter } from "next/navigation";
 import { useSignup } from "@/hooks/authHooks";
 import Image from "next/image";
+import { GoogleSignIn } from "@/components/Common/GoogleSignIn";
+import GoogleAuthProvider from "@/components/Common/GoogleAuthProvider";
+import { z } from 'zod';
+import { signupSchema } from "@tutorr/common/schema";
+import { toast } from "sonner";
 
 export default function Signup() {
-    const router = useRouter(); // <- initialize router
+    const router = useRouter();
     const { mutate, isPending, isSuccess, isError } = useSignup();
     const [confirmPassword, setConfirmPassword] = useState<string>("");
-    const [errorMessage, setErrorMessage] = useState<string>(""); // <- added for error
+    const [errorMessage, setErrorMessage] = useState<string>("");
     const [isTutor, setIsTutor] = useState<boolean>(false);
     const [data, setData] = useState({
         email: "",
@@ -21,21 +26,36 @@ export default function Signup() {
     console.log(data);
 
     const handleSubmit = () => {
-        if (confirmPassword !== data.password) {
-            setErrorMessage("Passwords do not match!");
-            return;
-        }
-        setErrorMessage(""); // clear error if any
-        mutate(data, {
-            onSuccess: () => {
-                router.push("/auth/login"); // <- redirect after success
-            },
-            onError: (err : any) => {
-                setErrorMessage(err); // optional extra error handling
-                const error = err?.response?.data?.message || err?.message || "An error occurred";
-                setErrorMessage(error); // Display the error message from backend or generic message
+        try {
+            const validatedData = signupSchema.parse(data);
+            if (confirmPassword !== data.password) {
+                setErrorMessage("Passwords do not match!");
+                return;
             }
-        });
+            setErrorMessage("");
+            mutate(validatedData, {
+                onSuccess: () => {
+                    router.push("/auth/login");
+                },
+                onError: (err: any) => {
+                    setErrorMessage(err);
+                    const error = err?.response?.data?.message || err?.message || "An error occurred";
+                    setErrorMessage(error);
+                }
+            });
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const fieldErrors = (error as z.ZodError).issues.map(issue => {
+                    const field = issue.path.join('.');
+                    return `${issue.message}`;
+                });
+                toast.error(fieldErrors.join(' , '));
+            } else {
+
+                console.error('Unexpected error during form submission:', error);
+                setErrorMessage("An unexpected error occurred. Please try again.");
+            }
+        }
     };
 
     return (
@@ -54,11 +74,11 @@ export default function Signup() {
                     {/* Auth Forms */}
                     <div className="flex justify-center items-center h-full">
                         <div>
-                            <p className="font-semibold text-3xl text-left">Sign Up</p>
-                            <p className="font-thin text-gray pb-2">Enter your credentials to create your account</p>
+                            <p className="font-bold text-3xl text-left">SIGN UP</p>
+                            <p className="font-thin text-gray-600 mt-2 pb-2">Enter your credentials to create your account</p>
 
                             {/* Toggle Bar */}
-                            <div className="h-10 w-60 rounded-full bg-gray-100 p-1 shadow-inner">
+                            <div className="h-10 w-60 rounded-full bg-gray-100 p-1 shadow-inner mt-3">
                                 <div className="flex w-full h-full relative">
                                     {/* Active Option Background */}
                                     <div
@@ -150,7 +170,7 @@ export default function Signup() {
                                 </div>
                             )}
 
-                            <div className="flex w-full pt-4">
+                            <div className="flex flex-col w-full pt-5 pb-6 border-b border-gray-300">
                                 <button
                                     className={`w-full bg-blue-800 text-white p-3 rounded-2xl hover:bg-blue-600 transition ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={isPending}
@@ -158,6 +178,13 @@ export default function Signup() {
                                 >
                                     {isPending ? "Signing Up..." : "Sign Up"}
                                 </button>
+                                <p className="pl-2 pt-2"> Already Registered ? <span><u><a href="/auth/login" className="text-blue-800 font-semibold"> Log In </a></u></span></p>
+                            </div>
+
+                            <div className=" mt-6">
+                                <GoogleAuthProvider>
+                                    <GoogleSignIn role={data.type}></GoogleSignIn>
+                                </GoogleAuthProvider>
                             </div>
 
                         </div>
