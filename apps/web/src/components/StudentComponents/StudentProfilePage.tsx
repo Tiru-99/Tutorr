@@ -33,7 +33,6 @@ export default function StudentProfilePage({ id }: { id: string }) {
   }
 
   console.log("The student is ", student)
-  console.log("Studnet name is ", student.user.name)
 
   return (
     <div className="min-h-screen">
@@ -63,7 +62,7 @@ export default function StudentProfilePage({ id }: { id: string }) {
               {/* Profile Details */}
               <div className="flex flex-col items-center md:items-start mt-2 md:mt-20 md:pb-3 flex-1">
                 <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl text-foreground">
-                  {student?.user?.name || "No Name"}
+                  {student?.name || "No Name"}
                 </h1>
 
                 <p className="text-muted-foreground text-lg mt-1">Computer Science Student • 3rd Year</p>

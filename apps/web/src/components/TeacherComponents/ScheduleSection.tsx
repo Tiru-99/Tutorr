@@ -55,8 +55,8 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
   const [duration, setDuration] = useState<number | null>(1)
   const { mutate, isPending, isError } = useInsertSchedule()
   const [time, setTime] = useState({
-    startTime: "9",
-    endTime: "17",
+    startTime: "",
+    endTime: "",
   });
   console.log("The schedule is ", schedule);
 
@@ -64,13 +64,11 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
 
   useEffect(() => {
     // Always set default values first
-    const defaultTime = { startTime: "9", endTime: "17" };
     const defaultDuration = 1;
     const defaultSelectedDays:string[] = [];
 
     if (!schedule) {
       // Set default values when schedule is not available
-      setTime(defaultTime);
       setDuration(defaultDuration);
       setSelectedDays(defaultSelectedDays);
       // You can set a default timezone if needed
@@ -95,14 +93,8 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
           startTime: converted.start,
           endTime: converted.end,
         });
-      } else {
-        // Use default values if template data is incomplete
-        setTime(defaultTime);
-      }
-    } else {
-      // Use default values when templates is not available
-      setTime(defaultTime);
-    }
+      } 
+    } 
   }, [schedule, templates])
   // for passing changes from child to parent from smarttimepicker
   const handleTimeChange = (start: string, end: string) => {
@@ -117,6 +109,16 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
 
   const handleSave = () => {
     // converting it to HH:mm format
+    if(time.startTime == "" || time.endTime == ""){
+      toast.error("Please fill the start time and end time");
+      return ; 
+    }
+
+    if(timezone == ""){
+      toast.error("Please enter the timezone");
+      return; 
+    }
+
     const padTime = (time: string) => {
       return time.length === 1 ? `0${time}` : time
     }
@@ -247,7 +249,7 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
             <CardContent>
               <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select timezone" />
+                  <SelectValue placeholder="Select timezone"/>
                 </SelectTrigger>
                 <SelectContent>
                   {timezones.map((tz) => (

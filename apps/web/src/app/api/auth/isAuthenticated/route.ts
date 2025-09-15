@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken"; // if you are verifying jwt manually
 import { JwtPayload } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET 
+const JWT_SECRET = process.env.JWT_SECRET! 
 
 export async function GET(req: NextRequest) {
   try {
 
     const token = req.cookies.get("jwtToken")?.value;
-    // <-- get the cookie named 'token'
+    // <-- get the cookie named 'token' 
     
 
     if (!token) {
@@ -17,7 +17,8 @@ export async function GET(req: NextRequest) {
 
     // Optionally verify the token if you want extra security
     try {
-      const decoded = jwt.verify(token, JWT_SECRET!);
+      const decoded = jwt.verify(token, JWT_SECRET);
+    
       return NextResponse.json({ authenticated: true, user: decoded }, { status: 200 });
     } catch (error) {
       return NextResponse.json({ authenticated: false, message: "Invalid token" }, { status: 401 });

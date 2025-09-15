@@ -45,7 +45,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     <TeacherProvider userId={userId}>
       <div className="flex min-h-screen">
         {/* Sidebar */}
-        <div className="sm:w-64 bg-gray-900 text-white md:p-4">
+        <div className="lg:w-64 bg-gray-900 text-white lg:p-4">
           <TeacherSidebar />
         </div>
 

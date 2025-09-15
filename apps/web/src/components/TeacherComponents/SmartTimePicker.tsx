@@ -45,7 +45,7 @@ export default function SmartTimePicker({
         <span className="text-sm text-gray-600 font-medium">From:</span>
         <Select value={startTime} onValueChange={handleStartTimeChange}>
           <SelectTrigger className="w-24 bg-white border-gray-300 text-gray-900">
-            <SelectValue />
+            <SelectValue placeholder = "Start"/>
           </SelectTrigger>
           <SelectContent className="bg-white border-gray-200">
             {timeOptions.map((t) => (
@@ -64,7 +64,7 @@ export default function SmartTimePicker({
         <span className="text-sm text-gray-600 font-medium">To:</span>
         <Select value={endTime} onValueChange={handleEndTimeChange}>
           <SelectTrigger className="w-24 bg-white border-gray-300 text-gray-900">
-            <SelectValue />
+            <SelectValue placeholder ="End"/>
           </SelectTrigger>
           <SelectContent className="bg-white border-gray-200">
             {getAvailableEndTimes(startTime).map((t) => (

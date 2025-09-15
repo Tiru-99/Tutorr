@@ -1,43 +1,16 @@
 "use client"
 
-import { Mail, Phone } from "lucide-react";
 import { useGetTeacherDetails } from "@/hooks/teacherProfileHooks";
 import LicenseComponent from "./LicenseAndReviews";
-import TabletLicenseComponent from "./TabletLicenseView";
-import { useState } from "react";
-import { TeacherProvider } from "@/context/TeacherContext";
-import { useEffect } from "react";
-import { DateTime } from "luxon";
+import { useRouter } from "next/navigation";
 import ProfileLazyLoader from "../Loaders/ProfilePageLoader";
+import { Award , University , Briefcase} from "lucide-react";
 
 
 export default function TeacherProfilePage({ id }: { id: string }) {
     const { data: teacher, isLoading, isError } = useGetTeacherDetails(id);
-    const [sessionSlots, setSessionSlots] = useState<string[]>([]);
     console.log("The data isss", teacher);
-
-    //function to generate time slots
-    useEffect(() => {
-
-        if (teacher?.start_time && teacher?.end_time && teacher?.session_duration) {
-            const durationInMinutes = parseInt(teacher.session_duration, 10) * 60;
-
-            const start = DateTime.fromISO(teacher.start_time, { zone: 'utc' }).toLocal();
-            const end = DateTime.fromISO(teacher.end_time, { zone: 'utc' }).toLocal();
-
-            const slots: string[] = [];
-
-            let current = start;
-
-            while (current.plus({ minutes: durationInMinutes }) <= end) {
-                slots.push(current.toFormat("h:mm a")); // e.g. "9:00 AM"
-                current = current.plus({ minutes: durationInMinutes });
-            }
-
-            setSessionSlots(slots);
-        }
-    }, [teacher ]);
-
+    const router = useRouter(); 
 
 
     if (isLoading) {
@@ -55,13 +28,13 @@ export default function TeacherProfilePage({ id }: { id: string }) {
     return (
         <>
             {/* for the context api */}
-            <TeacherProvider sessionSlots={sessionSlots} availableDays={teacher?.available_days || []} sessionDuration={teacher?.session_duration} id={id}>
-                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full  ">
+            
+                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full items-stretch ">
                     <div className="lg:w-3/4 w-full">
-                        <div className="border border-gray-300 ">
+                        <div className="border border-gray-300 rounded-lg shadow-md">
                             <div className="relative">
                                 {/* Banner Image */}
-                                <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
+                                <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80 overflow-hidden rounded-lg">
                                     <img
                                         src={teacher.banner_pic || "/images/banner.jpg"}
                                         alt="Banner"
@@ -104,21 +77,21 @@ export default function TeacherProfilePage({ id }: { id: string }) {
                                             {/* Contact Info */}
                                             <div className="flex flex-col sm:flex-row justify-center md:justify-between gap-3 sm:gap-6 md:gap-32 mt-3 sm:mt-4 w-full">
                                                 <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Mail size={16} className="text-gray-600" />
-                                                    <p className="text-blue-600 text-sm sm:text-base truncate">{teacher.company_name || "Urbantap"}</p>
+                                                    <Briefcase size={16} className="text-gray-600" />
+                                                    <p className="text-blue-600 text-sm sm:text-base truncate">{teacher.company_name || "Not Specified"}</p>
                                                 </div>
 
                                                 <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Phone size={16} className="text-gray-600" />
-                                                    <p className="text-blue-600 text-sm sm:text-base">{teacher.years_of_exp || "10 Years of Exp"}</p>
+                                                    <Award size={16} className="text-gray-600" />
+                                                    <p className="text-blue-600 text-sm sm:text-base">{teacher.years_of_exp + " years" || "Not specified"}</p>
                                                 </div>
                                             </div>
 
                                             <div className="mt-4 self-start">
                                                 <div className="flex items-start gap-1 sm:gap-2">
-                                                    <Phone size={16} className="text-gray-600" />
+                                                    <University size={16} className="text-gray-600" />
                                                     <p className="text-blue-600 text-sm sm:text-base">
-                                                        {teacher.highest_education || "B.Tech Civil Engineering"}
+                                                        {teacher.highest_education || "Not specified"}
                                                     </p>
                                                 </div>
                                             </div>
@@ -134,26 +107,12 @@ export default function TeacherProfilePage({ id }: { id: string }) {
                                     {teacher.about}
                                 </p>
                             </div>
-                            {/* Session Timings */}
-                            <div className="md:px-16 px-2 pl-4 mt-4  md:mt-10">
-                                <div className="border border-gray-300 p-4 rounded-lg shadow-sm">
-                                    <h2 className="text-lg font-semibold ">General Session Timings</h2>
-                                    <div className="flex flex-row flex-wrap text-sm mt-2 text-gray-800">
-                                        {sessionSlots && sessionSlots.map((slot, index) => (
-                                            <div key={index} className="cursor-pointer border border-gray-400 px-2 py-1 rounded-md m-1 hover:bg-gray-50  transition ease-in-out">
-                                                {slot}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                            </div>
-                            
 
                             {/* Edit Details Link */}
-                            <div className="flex justify-end pr-4 sm:pr-6 md:pr-8 pb-3 mt-3 sm:pb-4 md:mt-6">
+                            <div className="flex justify-end pr-4 sm:pr-6 md:pr-8 pb-4 mt-3 sm:pb-5 md:mt-6">
                                 <u>
-                                    <p className="cursor-pointer text-blue-400 text-sm sm:text-base">Edit Details</p>
+                                    <p className="cursor-pointer text-blue-400 text-sm sm:text-base"
+                                    onClick={() => router.push("/teacher/edit")}>Edit Details</p>
                                 </u>
                             </div>
 
@@ -161,16 +120,11 @@ export default function TeacherProfilePage({ id }: { id: string }) {
                     </div>
 
                     {/* Show LicenseComponent on all except md (tablet) */}
-                    <div className="block md:hidden lg:block">
-                        <LicenseComponent price={teacher.price} id ={teacher.id} />
-                    </div>
-
-                    {/* Show TabletLicenseComponent only on md (tablet) screens */}
-                    <div className="hidden md:block lg:hidden">
-                        <TabletLicenseComponent price={teacher.price} id={teacher.id} />
+                    <div className="">
+                        <LicenseComponent price={teacher.price} id ={teacher.id} license = {teacher.license}/>
                     </div>
                 </div>
-            </TeacherProvider>
+
 
         </>
     )

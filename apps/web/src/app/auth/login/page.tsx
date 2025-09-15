@@ -3,6 +3,8 @@
 import { useState ,  useEffect } from "react";
 import { useRouter } from "next/navigation"; // <- added this
 import { useLogin , useIsAuthenticated } from "@/hooks/authHooks";
+import GoogleAuthProvider from "@/components/Common/GoogleAuthProvider";
+import { GoogleSignIn } from "@/components/Common/GoogleSignIn";
 import Image from "next/image";
 
 export default function Login() {
@@ -62,10 +64,10 @@ export default function Login() {
                     {/* Auth Forms */}
                     <div className="flex justify-center items-center h-full">
                         <div>
-                            <p className="font-semibold text-3xl text-left">Log In </p>
-                            <p className="font-thin text-gray pb-2">Enter your credentials to access your account</p>
+                            <p className="font-bold text-3xl text-left">LOG IN </p>
+                            <p className="font-extralight text-gray-500 pb-2 pt-1">Enter your credentials to access your account</p>
                              {/* Toggle Bar */}
-                             <div className="h-10 w-60 rounded-full bg-gray-100 p-1 shadow-inner">
+                             <div className="h-10 w-60 rounded-full bg-gray-100 p-1 shadow-inner mt-3">
                                 <div className="flex w-full h-full relative">
                                     {/* Active Option Background */}
                                     <div
@@ -127,6 +129,9 @@ export default function Login() {
                                     className="w-80 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
                                 />
                             </div>
+                            
+                            
+                            
 
                             {/* Error Message */}
                             {errorMessage && (
@@ -135,7 +140,7 @@ export default function Login() {
                                 </div>
                             )}
 
-                            <div className="flex w-full pt-4">
+                            <div className="flex w-full pt-4 pb-6 border-b border-gray-300">
                                 <button
                                     className={`w-full bg-blue-800 text-white p-3 rounded-2xl hover:bg-blue-600 transition ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={isPending}
@@ -143,6 +148,12 @@ export default function Login() {
                                 >
                                     {isPending ? "Signing Up..." : "Sign Up"}
                                 </button>
+                            </div>
+
+                            <div className=" mt-6">
+                                <GoogleAuthProvider>
+                                    <GoogleSignIn role={data.type}></GoogleSignIn>
+                                </GoogleAuthProvider>
                             </div>
 
                         </div>

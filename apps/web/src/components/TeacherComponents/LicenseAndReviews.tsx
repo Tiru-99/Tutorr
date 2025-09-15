@@ -6,6 +6,7 @@ import { Star, Quote, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useGetTeacherReviews } from "@/hooks/reviewHook"
 
+
 interface ReviewType {
   student: {
     name: string
@@ -14,7 +15,7 @@ interface ReviewType {
   comment: string
 }
 
-export default function LicenseComponent({ price, id }: { price: number; id: string }) {
+export default function LicenseComponent({ price, id, license }: { price: number; id: string; license: string }) {
   const router = useRouter()
   const { data, isLoading, isError } = useGetTeacherReviews(id)
 
@@ -25,9 +26,18 @@ export default function LicenseComponent({ price, id }: { price: number; id: str
       text: review.comment,
     })) ?? []
 
+  const handleViewLicense = () => {
+    if (!license) {
+      alert("License not available")
+      return
+    }
+    window.open(license, "_blank")
+  }
+
+
   return (
     <Card className="max-w-md mx-auto bg-white border border-gray-200 shadow-md rounded-xl overflow-hidden">
-      <CardContent className="p-6 space-y-8">
+      <CardContent className="px-6 space-y-0">
         {/* Availability */}
         <div className="flex max-w-full">
           <Button
@@ -39,16 +49,16 @@ export default function LicenseComponent({ price, id }: { price: number; id: str
         </div>
 
         {/* Ratings */}
-        <div className="space-y-3">
+        <div className="mt-4">
           <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wide">Ratings</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2">
             <Star className="fill-yellow-400 text-yellow-400 w-5 h-5" />
             <p className="text-lg font-bold text-gray-900">{data?.response?.averageRating ?? 0}</p>
           </div>
         </div>
 
         {/* Reviews */}
-        <div className="border border-gray-300 rounded-xl bg-gray-50 ">
+        <div className="border border-gray-300 rounded-xl bg-gray-50 mt-3">
           <div className="relative p-5">
             <div className="space-y-5">
               <h3 className="text-gray-900 font-semibold text-sm uppercase tracking-wide">Reviews</h3>
@@ -94,7 +104,7 @@ export default function LicenseComponent({ price, id }: { price: number; id: str
         </div>
 
         {/* Price */}
-        <div className="border border-gray-300 rounded-xl">
+        <div className="border border-gray-300 rounded-xl mt-4">
           <div className="py-5 px-5 space-y-2">
             <h3 className="text-gray-900 text-sm font-semibold uppercase tracking-wide">Price</h3>
             <div className="flex items-baseline gap-1">
@@ -105,11 +115,13 @@ export default function LicenseComponent({ price, id }: { price: number; id: str
         </div>
 
         {/* Actions */}
-        <div className="space-y-3 pt-2">
-          <Button className="w-full bg-blue-600 text-white border border-gray-300 hover:bg-gray-100 font-semibold py-2.5 rounded-lg shadow-sm transition">
+        <div className="space-y-3 mt-3 pt-2">
+          <Button className="w-full bg-blue-600 text-white border border-gray-300 hover:bg-gray-100 font-semibold py-2.5 rounded-lg shadow-sm transition"
+            onClick={handleViewLicense}>
             View License
           </Button>
-          <Button className="w-full bg-white text-red-600 border border-red-300 hover:bg-red-50 font-semibold py-2.5 rounded-lg shadow-sm transition">
+          <Button className="w-full bg-white text-red-600 border border-red-300 hover:bg-red-50 font-semibold py-2.5 rounded-lg shadow-sm transition"
+          onClick={() => router.push("/teacher/edit")}>
             Delete License
           </Button>
         </div>
