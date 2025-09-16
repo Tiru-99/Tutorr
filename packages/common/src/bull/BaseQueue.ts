@@ -1,4 +1,4 @@
-import { Queue, JobsOptions, QueueOptions } from 'bullmq';
+import { Queue, JobsOptions, QueueOptions, Job } from 'bullmq';
 import { Redis } from 'ioredis';
 
 /**
@@ -41,7 +41,12 @@ export abstract class BaseQueue<T = any> {
         return await this.queue.add(jobName, data, options);
     }
 
+
     async getQueueName(){
         return this.queueName;
+    }
+
+    getQueue(){
+        return this.queue;
     }
 }

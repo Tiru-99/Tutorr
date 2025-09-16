@@ -1,10 +1,10 @@
-import { BaseQueue  } from "../../bull/BaseQueue";
+import { BaseQueue } from "../../bull/BaseQueue";
 import { Redis } from "ioredis";
+import { JobsOptions } from "bullmq";
 
-
-export class BackgroundJobQueue extends BaseQueue<any>{
-    constructor(redis : Redis ) {
-        //bgsq -> background service queue
-        super('bgsq' , redis )
+export class BackgroundJobQueue extends BaseQueue<any> {
+    constructor(redis: Redis) {
+        super("bgsq", redis);
     }
+
 }

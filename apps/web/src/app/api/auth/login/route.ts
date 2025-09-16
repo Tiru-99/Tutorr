@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             message: "User logged in Successfully",
             userId: existingUser.id,
             type: existingUser.type,
-            name: existingUser.name,
+            name: existingUser.student?.name ?? existingUser.teacher?.name,
             email: existingUser.email,
             token: token,
             studentId: existingUser.student?.id ?? null,

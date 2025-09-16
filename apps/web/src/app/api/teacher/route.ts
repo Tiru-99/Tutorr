@@ -25,23 +25,16 @@ export async function POST(req: NextRequest) {
         highest_education: formData.get("highest_education") as string,
         years_of_exp: formData.get("years_of_exp") as string,
         about: formData.get("about") as string,
-        session_duration: formData.get("session_duration") as string,
-        start_time: formData.get("start_time") as string,
-        end_time: formData.get("end_time") as string,
         price: price
     };
 
     const email = formData.get("email") as string;
 
     let parsedExpertise = [];
-    let parsedAvailableDays = [];
-    console.log("The times are ", fields.start_time, fields.end_time, fields.session_duration)
-    const sessionSlots = generateTimeOnlyUTCSlots(fields.start_time, fields.end_time, fields.session_duration);
 
     try {
         //parsing the incoming string data into array of strings 
         parsedExpertise = JSON.parse(formData.get("expertise") as string);
-        parsedAvailableDays = JSON.parse(formData.get("available_days") as string);
     } catch (err) {
         return NextResponse.json({ message: "Invalid JSON in expertise or available_days" }, { status: 400 });
     }
@@ -54,8 +47,6 @@ export async function POST(req: NextRequest) {
         },
         select: {
             id: true,
-            start_time: true,
-            end_time: true
         },
     });
 
@@ -71,9 +62,6 @@ export async function POST(req: NextRequest) {
         dataToUpdate.expertise = parsedExpertise;
     }
 
-    if (parsedAvailableDays && parsedAvailableDays.length > 0) {
-        dataToUpdate.available_days = parsedAvailableDays
-    }
 
 
     // Upload files and update URLs parallely
@@ -124,21 +112,3 @@ export async function POST(req: NextRequest) {
 
 }
 
-//route to get all the teachers 
-export async function GET(req: NextRequest) {
-
-    try {
-        const teachers = await prisma.teacher.findMany();
-
-        if (teachers.length <= 0) {
-            console.log("No teacher available");
-            return NextResponse.json({ message: "No teachers found" }, { status: 400 });
-        }
-
-        return NextResponse.json({ teachers }, { status: 200 });
-
-    } catch (error) {
-        console.log("Something went wrong");
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-    }
-}

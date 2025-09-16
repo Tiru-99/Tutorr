@@ -9,6 +9,7 @@ import { useGetBookingsForTeacher, useCancelBookingForTeacher } from "@/hooks/bo
 import { format } from "date-fns"
 import { useState, useMemo } from "react"
 import { toast } from "sonner"
+import { BookingSkeleton } from "@/components/Loaders/BookingLoader"
 
 type Booking = {
   id: string
@@ -67,7 +68,7 @@ export default function Home() {
     )
   }
 
-  if (isLoading) return <p>Loading bookings...</p>
+  if (isLoading) return <BookingSkeleton />
   if (isError) return <p>Failed to load bookings</p>
   if (!data?.bookings) return <p>No bookings found</p>
 
@@ -86,6 +87,7 @@ export default function Home() {
           </TabsList>
 
           {/* UPCOMING BOOKINGS */}
+          {/* UPCOMING BOOKINGS */}
           <TabsContent value="Upcoming" className="mt-4 space-y-4">
             {paginatedScheduled.length === 0 ? (
               <Card className="rounded-xl shadow-sm border">
@@ -94,7 +96,8 @@ export default function Home() {
             ) : (
               paginatedScheduled.map((booking) => (
                 <Card key={booking.id} className="rounded-xl shadow-sm border">
-                  <CardContent className="flex justify-between items-center py-4">
+                  <CardContent className="flex flex-col md:flex-row justify-between items-start md:items-center py-4 gap-3">
+                    {/* Left side: date & time */}
                     <div>
                       <p className="font-semibold">{format(new Date(booking.startTime), "MMM dd, yyyy")}</p>
                       <p className="text-gray-600 text-sm">
@@ -102,12 +105,19 @@ export default function Home() {
                         {format(new Date(booking.endTime), "hh:mm a")}
                       </p>
                     </div>
-                    <div className="flex gap-3">
-                      <Button variant="default" onClick={() => window.open(booking.meeting_url, "_blank")}>
+
+                    {/* Right side: buttons */}
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto">
+                      <Button
+                        variant="default"
+                        className="w-full sm:w-auto"
+                        onClick={() => window.open(booking.meeting_url, "_blank")}
+                      >
                         Join now
                       </Button>
                       <Button
                         variant="outline"
+                        className="w-full sm:w-auto"
                         disabled={isPending && selectedBooking === booking.id}
                         onClick={() => {
                           setSelectedBooking(booking.id)
@@ -121,80 +131,58 @@ export default function Home() {
                 </Card>
               ))
             )}
+            </TabsContent>
 
-            {/* Pagination Controls */}
-            {scheduled.length > pageSize && (
-              <div className="flex justify-between items-center mt-4">
-                <Button
-                  variant="outline"
-                  disabled={upcomingPage === 1}
-                  onClick={() => setUpcomingPage((prev) => Math.max(1, prev - 1))}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-gray-600">
-                  Page {upcomingPage} of {upcomingTotalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={upcomingPage >= upcomingTotalPages}
-                  onClick={() => setUpcomingPage((prev) => Math.min(upcomingTotalPages, prev + 1))}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </TabsContent>
 
-          {/* COMPLETED BOOKINGS */}
-          <TabsContent value="Completed" className="mt-4 space-y-4">
-            {paginatedCompleted.length === 0 ? (
-              <Card className="rounded-xl shadow-sm border">
-                <CardContent className="py-8 text-center text-gray-500">No completed bookings</CardContent>
-              </Card>
-            ) : (
-              paginatedCompleted.map((booking) => (
-                <Card key={booking.id} className="rounded-xl shadow-sm border">
-                  <CardContent className="flex justify-between items-center py-4">
-                    <div>
-                      <p className="font-semibold">{format(new Date(booking.startTime), "MMM dd, yyyy")}</p>
-                      <p className="text-gray-600 text-sm">
-                        {format(new Date(booking.startTime), "hh:mm a")} —{" "}
-                        {format(new Date(booking.endTime), "hh:mm a")}
-                      </p>
-                    </div>
-                    <p className="text-sm flex items-center gap-2 text-green-600">
-                      <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                      Completed
-                    </p>
-                  </CardContent>
+            {/* COMPLETED BOOKINGS */}
+            <TabsContent value="Completed" className="mt-4 space-y-4">
+              {paginatedCompleted.length === 0 ? (
+                <Card className="rounded-xl shadow-sm border">
+                  <CardContent className="py-8 text-center text-gray-500">No completed bookings</CardContent>
                 </Card>
-              ))
-            )}
+              ) : (
+                paginatedCompleted.map((booking) => (
+                  <Card key={booking.id} className="rounded-xl shadow-sm border">
+                    <CardContent className="flex justify-between items-center py-4">
+                      <div>
+                        <p className="font-semibold">{format(new Date(booking.startTime), "MMM dd, yyyy")}</p>
+                        <p className="text-gray-600 text-sm">
+                          {format(new Date(booking.startTime), "hh:mm a")} —{" "}
+                          {format(new Date(booking.endTime), "hh:mm a")}
+                        </p>
+                      </div>
+                      <p className="text-sm flex items-center gap-2 text-green-600">
+                        <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                        Completed
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
 
-            {/* Pagination Controls */}
-            {completed.length > pageSize && (
-              <div className="flex justify-between items-center mt-4">
-                <Button
-                  variant="outline"
-                  disabled={completedPage === 1}
-                  onClick={() => setCompletedPage((prev) => Math.max(1, prev - 1))}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-gray-600">
-                  Page {completedPage} of {completedTotalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={completedPage >= completedTotalPages}
-                  onClick={() => setCompletedPage((prev) => Math.min(completedTotalPages, prev + 1))}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </TabsContent>
+              {/* Pagination Controls */}
+              {completed.length > pageSize && (
+                <div className="flex justify-between items-center mt-4">
+                  <Button
+                    variant="outline"
+                    disabled={completedPage === 1}
+                    onClick={() => setCompletedPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Page {completedPage} of {completedTotalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={completedPage >= completedTotalPages}
+                    onClick={() => setCompletedPage((prev) => Math.min(completedTotalPages, prev + 1))}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
         </Tabs>
       </div>
 

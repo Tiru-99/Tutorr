@@ -3,7 +3,10 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, Camera, Upload } from "lucide-react";
 import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProfileHooks";
-import { DateTime } from 'luxon';
+import TeacherEditSkeleton from "../Loaders/TeacherEditSkeleton";
+import { toast } from "sonner";
+import { teacherDataSchema } from "@tutorr/common/schema";
+import { z } from 'zod';
 
 
 interface ImageType {
@@ -26,12 +29,7 @@ interface TeacherData {
   years_of_exp: string,
   about: string,
   expertise: string[],
-  session_duration: string,
-  start_time: string,
-  end_time: string,
-  available_days: string[],
   price: number,
-  timezone: string,
 }
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
@@ -42,7 +40,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     banner_pic: "",
     license: ""
   })
-  const timezones = Intl.supportedValuesOf("timeZone");
+
   const [dataToSend, setDataToSend] = useState<TeacherData>({
     name: teacher?.name || "",
     email: teacher?.user.email || "",
@@ -52,12 +50,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     years_of_exp: teacher?.years_of_exp || "",
     about: teacher?.about || "",
     expertise: teacher?.expertise || "",
-    session_duration: teacher?.session_duration || "",
-    start_time: teacher?.start_time || "",
-    end_time: teacher?.end_time || "",
-    available_days: teacher?.available_days || "",
-    price: teacher?.price || null,
-    timezone: teacher?.timezone || null
+    price: teacher?.price || 0
   })
   const [files, setFiles] = useState<ImageType>({
     profile_pic: null,
@@ -65,11 +58,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     license: null
   })
   const [selectedExpertise, setSelectedExpertise] = useState(["English", "Maths", "History"])
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [sessionTime, setSessionTime] = useState("1 Hour")
-  const [startTime, setStartTime] = useState({ hour: "06", minute: "00" })
-  const [endTime, setEndTime] = useState({ hour: "12", minute: "00" })
-
   //useEffect 
   useEffect(() => {
     if (teacher) {
@@ -82,28 +70,8 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
         years_of_exp: teacher?.years_of_exp || "",
         about: teacher?.about || "",
         expertise: teacher?.expertise || "",
-        session_duration: teacher?.session_duration || "",
-        start_time: teacher?.start_time || "",
-        end_time: teacher?.end_time || "",
-        available_days: teacher?.available_days || "",
         price: teacher?.price || null,
-        timezone: teacher?.timezone || null
       });
-      if (teacher?.start_time) {
-        const dt = DateTime.fromISO(teacher.start_time, { zone: "utc" }).toLocal();
-        setStartTime({
-          hour: dt.hour.toString().padStart(2, '0'),
-          minute: dt.minute.toString().padStart(2, '0')
-        });
-      }
-
-      if (teacher?.end_time) {
-        const dt = DateTime.fromISO(teacher.end_time, { zone: "utc" }).toLocal();
-        setEndTime({
-          hour: dt.hour.toString().padStart(2, '0'),
-          minute: dt.minute.toString().padStart(2, '0')
-        });
-      }
 
       if (teacher?.license) {
         setIncomingFiles((prev) => ({ ...prev, license: teacher.license }));
@@ -119,26 +87,12 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       }
 
       setSelectedExpertise(teacher?.expertise);
-      setSelectedDays(teacher?.available_days);
-      if (teacher?.startTime) {
-        setStartTime({
-          hour: teacher.startTime.slice(0, 2),
-          minute: teacher.startTime.slice(2, 4),
-        });
-      }
-      if (teacher?.endTime) {
-        setStartTime({
-          hour: teacher.endTime.slice(0, 2),
-          minute: teacher.endTime.slice(2, 4)
-        })
-      }
     }
   }, [teacher])
   //refs 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const expertiseOptions = ["English", "Maths", "History", "I.T", "Development", "Geography"];
-  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
   const toggleExpertise = (expertise: string) => {
     setSelectedExpertise((prev) =>
@@ -146,10 +100,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     )
   }
 
-  const toggleDays = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]);
-  }
 
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -201,122 +151,75 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       setFiles((prev) => ({ ...prev, license: file }));
     }
   };
-
-  const validateTime = ({ hour, minute }: { hour: number; minute: number }) => {
-    if (hour < 0 || hour > 24) {
-      return "Please enter a correct hour value (0–24)";
-    }
-    if (minute < 0 || minute >= 60) {
-      return "Please enter a correct minute value (0–59)";
-    }
-    if (hour == 23 && minute === 60) {
-      return "Mai Pagal dikhta hu kya bsdk!"
-    }
-    if (hour == 24) {
-      return "Pagal lavde !"
-    }
-    return null; // valid
-  };
-
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      const validatedData = teacherDataSchema.parse(dataToSend);
 
-    const startHour = parseInt(startTime.hour, 10);
-    const startMinute = parseInt(startTime.minute, 10);
+      const finalDataToSend: TeacherData =
+      {
+        ...dataToSend,
+        expertise: selectedExpertise,
+      }
 
-    const errorMessage = validateTime({ hour: startHour, minute: startMinute });
+      console.log("final data to send is", finalDataToSend);
 
-    if (errorMessage) {
-      alert(errorMessage);
-      return;
-    }
+      const formData = new FormData();
+      //do formAppend logically instead of writing each line manually
+      Object.keys(finalDataToSend).forEach((key) => {
+        const value = finalDataToSend[key as keyof TeacherData];
+        //form append for arrays
+        if (Array.isArray(value) || typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
 
-    const endHour = parseInt(endTime.hour, 10);
-    const endMinute = parseInt(endTime.minute, 10);
+      //to append files 
+      Object.entries(files).forEach(([key, file]) => {
+        if (file) {
+          formData.append(key, file);
+        }
+      });
 
-    const errorMessage2 = validateTime({ hour: endHour, minute: endMinute });
+      // To check the formData content:
+      for (const pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
 
-    if (errorMessage2) {
-      alert(errorMessage2);
-      return;
-    }
-
-    if (startHour > endHour) {
-      alert("Invalid starting and ending  times");
-      return;
-    }
-
-    if (selectedDays.length === 0) {
-      alert("Please choose Avaiable days");
-      return;
-    }
-
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const localStartTime = DateTime.fromObject(
-      { hour: startHour, minute: startMinute },
-      { zone: zone }
-    );
-
-    const finalStartTime = localStartTime.toUTC().toISO();
-
-    const localEndTime = DateTime.fromObject(
-      { hour: endHour, minute: endMinute },
-      { zone: zone }
-    )
-
-    const finalEndTime = localEndTime.toUTC().toISO();
-
-    if (!finalStartTime || !finalEndTime) {
-      return null;
-    }
-
-    const finalDataToSend: TeacherData =
-    {
-      ...dataToSend,
-      start_time: finalStartTime,
-      end_time: finalEndTime,
-      available_days: selectedDays,
-      expertise: selectedExpertise,
-      session_duration: sessionTime
-    }
-
-    console.log("final data to send is", finalDataToSend);
-
-    const formData = new FormData();
-    //do formAppend logically instead of writing each line manually
-    Object.keys(finalDataToSend).forEach((key) => {
-      const value = finalDataToSend[key as keyof TeacherData];
-      //form append for arrays
-      if (Array.isArray(value) || typeof value === 'object') {
-        formData.append(key, JSON.stringify(value));
+      mutate(formData, {
+        onSuccess: () => {
+          toast.success("Changes saved sucessfully !")
+        },
+        onError: () => {
+          toast.error("Something went wrong while saving")
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = (error as z.ZodError).issues.map(issue => {
+          const field = issue.path.join('.');
+          return `${issue.message}`;
+        });
+        toast.error(fieldErrors.join(' , '));
       } else {
-        formData.append(key, String(value));
+        console.error('Unexpected error during form submission:', error);
       }
-    });
-
-    //to append files 
-    Object.entries(files).forEach(([key, file]) => {
-      if (file) {
-        formData.append(key, file);
-      }
-    });
-
-    // To check the formData content:
-    for (const pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
     }
 
-    mutate(formData);
-    // ✅ continue with submission logic here
   };
 
-
-
-  console.log("The data is", dataToSend)
+  if (isLoading) {
+    return <TeacherEditSkeleton />
+  }
+  if (isError) {
+    return <div>Something went wrong while loading</div>
+  }
   return (
     <form onSubmit={handleSubmit}>
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm">
+      <div className="min-h-screen bg-gray-50 p-4 flex justify-center">
+        <div className="w-full  bg-white rounded-lg shadow-sm">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center gap-4">
@@ -449,16 +352,20 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
                 </div>
-                <div>
+                <div className="w-full max-w-xs">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Name your price</label>
-                  <input
-                    type="number"
-                    placeholder="Enter price in USD"
-                    value={dataToSend.price}
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full max-w-xs"
-                    onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      placeholder="Enter price in USD"
+                      value={dataToSend.price}
+                      onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    />
+                  </div>
                 </div>
+
 
                 {/* Upload License */}
                 <div>
@@ -522,101 +429,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                         {expertise}
                       </button>
                     ))}
-                  </div>
-                </div>
-
-                {/* Select Timezone  */}
-                <div>
-                  <label htmlFor="timezone">Select Timezone: </label>
-                  <select
-                    id="timezone"
-                    value={dataToSend.timezone}
-                    onChange={(e) => setDataToSend((prev) => ({...prev , timezone : e.target.value}))}
-                  >
-                    <option value="">-- Select a Timezone --</option>
-                    {timezones.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz}
-                      </option>
-                    ))}
-                  </select>
-
-                  {dataToSend.timezone && <p>Selected: {dataToSend.timezone}</p>}
-                </div>
-
-                {/* Availability */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Availability</label>
-
-                  {/* Session Time */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm text-gray-600">Session Time:</span>
-                      <select
-                        value={sessionTime}
-                        onChange={(e) => setSessionTime(e.target.value)}
-                        className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option>1 Hour</option>
-                        <option>2 Hours</option>
-                        <option>3 Hours</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Timings */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Timings (24 Hour Clock Format)</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={startTime.hour}
-                          onChange={(e) => setStartTime({ ...startTime, hour: e.target.value })}
-                          className="w-12 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-500">:</span>
-                        <input
-                          type="text"
-                          value={startTime.minute}
-                          onChange={(e) => setStartTime({ ...startTime, minute: e.target.value })}
-                          className="w-12 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-500 mx-2">TO</span>
-                        <input
-                          type="text"
-                          value={endTime.hour}
-                          onChange={(e) => setEndTime({ ...endTime, hour: e.target.value })}
-                          className="w-12 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-500">:</span>
-                        <input
-                          type="text"
-                          value={endTime.minute}
-                          onChange={(e) => setEndTime({ ...endTime, minute: e.target.value })}
-                          className="w-12 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Select Availability</label>
-                    <div className="flex flex-wrap gap-2">
-                      {days.map((day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          onClick={() => toggleDays(day)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedDays.includes(day)
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
-                        >
-                          {day}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </div>

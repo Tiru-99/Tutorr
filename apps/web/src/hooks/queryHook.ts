@@ -17,7 +17,7 @@ const homePageQuery = async (data: QueryBody) => {
 
 
 const getAllTeachers = async () => {
-    const response = await axios.get('/api/teacher');
+    const response = await axios.get('/api/teacher/fetch');
     return response.data;
 }
 

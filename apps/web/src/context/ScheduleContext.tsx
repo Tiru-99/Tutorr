@@ -12,7 +12,7 @@ type TimezoneContextType = {
 const TimezoneContext = createContext<TimezoneContextType | undefined>(undefined);
 
 export const TimezoneProvider = ({ children }: { children: ReactNode }) => {
-  const [timezone, setTimezone] = useState("UTC"); // default
+  const [timezone, setTimezone] = useState(""); // default
   const [selectedDays, setSelectedDays] = useState<string[]>([]); // default empty
 
   return (

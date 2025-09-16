@@ -15,10 +15,10 @@ datasource db {
 
 model User {
   id       String   @id @default(uuid())
-  name     String
   email    String   @unique
   password String
   type     UserType
+  googleId String?
   teacher  Teacher? @relation
   student  Student? @relation
 }
@@ -40,10 +40,6 @@ model Teacher {
   about             String?
   license           String? //link of the pdf document
   expertise         String[]
-  session_duration  String?
-  start_time        String?
-  end_time          String?
-  available_days    String[]
   subject           String?
   profile_pic       String?
   banner_pic        String?
@@ -74,8 +70,8 @@ model Student {
 
 model TeacherReview {
   id        String  @id @default(uuid())
-  bookingId String @unique 
-  booking   Booking @relation(fields: [bookingId] , references: [id])
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
   teacherId String
   teacher   Teacher @relation(fields: [teacherId], references: [id])
   studentId String
@@ -217,12 +213,12 @@ model Booking {
 }
 
 model Wallet {
-  id            String         @id @default(uuid())
-  amount        Decimal        @default(0.00)
-  currency      Currency
-  teacherId     String         @unique
-  teacher       Teacher        @relation(fields: [teacherId], references: [id])
-  transactions  Transactions[]
+  id           String         @id @default(uuid())
+  amount       Decimal        @default(0.00)
+  currency     Currency
+  teacherId    String         @unique
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+  transactions Transactions[]
 }
 
 enum Currency {

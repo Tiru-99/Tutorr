@@ -194,6 +194,23 @@ import { Prisma } from "@tutorr/db"
 export async function POST(req: NextRequest, res: NextResponse) {
     const { startTime, endTime, topic, date, price, name } = await req.json();
 
+    if (!startTime || !endTime || !topic || !date || !price || !name) {
+        //user has passed no filters then return him all teachers 
+        try {
+            const teachers = await prisma.teacher.findMany();
+            return NextResponse.json({
+                teachers,
+                message: "Returned available teachers"
+            });
+        } catch (error) {
+            console.log("Something went wrong while fetching all teachers" , error); 
+            return NextResponse.json({
+                error ,
+                message : "Something went wrong while fetching teachers"
+            } , { status : 500 })
+        }
+    }
+
     //extract day of the week from the date and then convert the date in the proper utc format
     // build a query 
     // query requirements : 
@@ -291,7 +308,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             teachers: availableTeachers,
             message: "Returned available teachers"
         });
-        
+
     } catch (error) {
         console.log("Something went wrong while searching teachers", error);
         return NextResponse.json({

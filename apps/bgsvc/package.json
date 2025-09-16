@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts"
+     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@tutorr/common":"*",
+    "@bull-board/api": "^6.12.7",
+    "@bull-board/express": "^6.12.7",
+    "@bull-board/ui": "^6.12.7",
+    "@tutorr/common": "*",
+    "bull-board": "^1.7.2",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2"
