@@ -1,6 +1,6 @@
 "use client"
 
-import { GraduationCap, Menu, X } from "lucide-react"
+import { GraduationCap, Menu, X , BookOpen} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -17,7 +17,7 @@ export default function Navbar() {
         {/* Left side: Logo & Brand */}
         <div className="flex items-center space-x-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
-            <GraduationCap className="h-6 w-6 text-secondary stroke-black" />
+            <BookOpen className="h-6 w-6 text-secondary stroke-black" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold text-foreground">Tutorr</span>

@@ -37,6 +37,7 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.23.13",
     "google-auth-library": "^10.3.0",
     "ioredis": "^5.7.0",
     "jose": "^6.0.12",
