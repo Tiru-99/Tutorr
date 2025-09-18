@@ -53,7 +53,7 @@ export default function ScheduleSection({ schedule, templates }: ScheduleSection
   }
 
   const [duration, setDuration] = useState<number | null>(1)
-  const { mutate, isPending, isError } = useInsertSchedule()
+  const { mutate, isPending } = useInsertSchedule()
   const [time, setTime] = useState({
     startTime: "",
     endTime: "",

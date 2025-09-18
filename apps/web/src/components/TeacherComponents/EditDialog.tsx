@@ -16,7 +16,6 @@ import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
 import { useGetTeacherAvailability } from "@/hooks/teacherProfileHooks";
 import { useUpdateTeacherAvailability } from "@/hooks/teacherProfileHooks";
-import { Loader } from "lucide-react";
 import { convertSessionSlotsToUTC } from "../../utils/utilityFunctions";
 
 
@@ -36,8 +35,8 @@ export default function EditDialog() {
     const dayOfWeek = date?.toString().slice(0, 3).toUpperCase();
     console.log("the date to send is", dateToSend);
     //api
-    const { data: availability, isLoading, isError, refetch } = useGetTeacherAvailability(userId, dateToSend);
-    const { mutate, isPending, isError: submitError } = useUpdateTeacherAvailability();
+    const { data: availability, isLoading } = useGetTeacherAvailability(userId, dateToSend);
+    const { mutate, isPending } = useUpdateTeacherAvailability();
 
     console.log("The data is ", availability);
     //useEffect

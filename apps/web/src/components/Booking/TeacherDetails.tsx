@@ -3,10 +3,8 @@
 import { Mail, Phone } from "lucide-react";
 import { useGetTeacherById } from "@/hooks/queryHook";
 import PricingAndReview from "@/components/Booking/PricingAndReviews";
-import { useState } from "react";
-import { useEffect } from "react";
 import { useParams } from "next/navigation";
-
+import ProfileLazyLoader from "../Loaders/ProfilePageLoader";
 
 
 export default function TeacherDetails() {
@@ -19,7 +17,7 @@ export default function TeacherDetails() {
 
 
     if (isLoading) {
-        return <div>Loading teacher Profile...</div>;
+        return <ProfileLazyLoader/>;
     }
 
     if (isError) {
@@ -33,7 +31,7 @@ export default function TeacherDetails() {
     return (
         <>
             {/* for the context api */}
-                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-28">
+                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-10">
                     <div className="lg:w-3/4 w-full">
                         <div className="border border-gray-300 rounded-lg">
                             <div className="relative">

@@ -1,7 +1,7 @@
-import { NextResponse , NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 //route to get all the teachers
-export async function GET(req: NextRequest) {
+export async function GET() {
 
     try {
         const teachers = await prisma.teacher.findMany();
@@ -15,6 +15,6 @@ export async function GET(req: NextRequest) {
 
     } catch (error) {
         console.log("Something went wrong");
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Internal Server Error" , error  }, { status: 500 });
     }
 }

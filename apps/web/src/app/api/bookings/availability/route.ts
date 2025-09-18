@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 import { DateTime } from "luxon";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
+  console.log("coming to the backend bro!")
   const { searchParams } = new URL(req.url);
 
   const dateStart = searchParams.get("dateStart");
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
     });
 
     if (!schedule || !schedule.duration) {
+      console.log("Schedule not found");
       return NextResponse.json({
         error: "Schedule or session duration not found"
       }, { status: 404 });
@@ -64,7 +66,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
       },
     });
 
-    let slots = [];
+    const slots = [];
 
     if (overrides && overrides.length > 0) {
       for (const override of overrides) {
@@ -106,12 +108,12 @@ export async function GET(req: NextRequest, res: NextResponse) {
         },
       });
 
-      let finalSlots: { startTime: string; endTime: string }[] = [];
+      const finalSlots: { startTime: string; endTime: string }[] = [];
 
       // create slots first
       const generatedSlots = createSlots(
-        availability?.startTime!,
-        availability?.endTime!,
+        availability!.startTime,
+        availability!.endTime,
         schedule.duration
       );
 
@@ -135,7 +137,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
         slot.end = `${datePartForEnd}T${endTimeOnly}:00.000Z`;
 
         // ADD THIS: Check if slot conflicts with any booked override
-        const isBooked = bookedOverrides.some(bookedSlot => {
+        const isBooked = bookedOverrides.some((bookedSlot : any) => {
           const slotStart = new Date(slot.start);
           const slotEnd = new Date(slot.end);
           const bookedStart = new Date(bookedSlot.startTime);
@@ -203,50 +205,6 @@ function createSlots(
   return slots;
 }
 
-
-
-interface DateTimeResult {
-  startTime: string | Date;
-  endTime: string | Date;
-}
-
-export function combineDateTime(
-  startDate: string,
-  startTime: string,
-  endTime: string
-): DateTimeResult {
-  // Parse the start date to get the date portion
-  const baseDate = DateTime.fromISO(startDate);
-
-  // Parse the time inputs to extract time portions
-  const startTimeObj = DateTime.fromISO(startTime);
-  const endTimeObj = DateTime.fromISO(endTime);
-
-  // Combine base date with start time
-  const newStartTime = baseDate
-    .set({
-      hour: startTimeObj.hour,
-      minute: startTimeObj.minute,
-      second: startTimeObj.second,
-      millisecond: startTimeObj.millisecond
-    })
-    .toISO();
-
-  // Combine base date with end time
-  const newEndTime = baseDate
-    .set({
-      hour: endTimeObj.hour,
-      minute: endTimeObj.minute,
-      second: endTimeObj.second,
-      millisecond: endTimeObj.millisecond
-    })
-    .toISO();
-
-  return {
-    startTime: newStartTime!,
-    endTime: newEndTime!
-  };
-}
 
 function generateSlots(
   availabilityStart: Date,

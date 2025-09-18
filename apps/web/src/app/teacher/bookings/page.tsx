@@ -24,7 +24,7 @@ export default function Home() {
   const { mutate, isPending } = useCancelBookingForTeacher()
 
   // Pagination states
-  const [upcomingPage, setUpcomingPage] = useState(1)
+  const [upcomingPage] = useState(1)
   const [completedPage, setCompletedPage] = useState(1)
   const pageSize = 5
 
@@ -46,7 +46,6 @@ export default function Home() {
     return completed.slice((completedPage - 1) * pageSize, completedPage * pageSize)
   }, [completed, completedPage, pageSize])
 
-  const upcomingTotalPages = Math.ceil(scheduled.length / pageSize)
   const completedTotalPages = Math.ceil(completed.length / pageSize)
 
   const handleCancel = () => {

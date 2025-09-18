@@ -38,8 +38,8 @@ export default function Component() {
   const router = useRouter();
 
   //api hook 
-  const { mutate, isPending, isError, isSuccess } = useGetTeachersByQuery();
-  const { data, isLoading, isError: fetchError } = useGetAllTeachers();
+  const { mutate, isPending } = useGetTeachersByQuery();
+  const { data, isLoading } = useGetAllTeachers();
   console.log("The get teacher data is ", data);
   //useEffect to fetch all the teachers 
   useEffect(() => {

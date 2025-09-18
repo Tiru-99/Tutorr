@@ -8,20 +8,17 @@ export async function GET(req: NextRequest) {
   try {
 
     const token = req.cookies.get("jwtToken")?.value;
-    // <-- get the cookie named 'token' 
-    
 
     if (!token) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
-    // Optionally verify the token if you want extra security
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
     
       return NextResponse.json({ authenticated: true, user: decoded }, { status: 200 });
     } catch (error) {
-      return NextResponse.json({ authenticated: false, message: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ authenticated: false, message: "Invalid token" , error  }, { status: 401 });
     }
 
   } catch (error) {
@@ -52,7 +49,7 @@ export async function POST(req : NextRequest) {
       }
       return NextResponse.json({ authenticated: true, user: decoded.id }, { status: 200 });
     } catch (error) {
-      return NextResponse.json({ authenticated: false, message: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ authenticated: false, message: "Invalid token", error }, { status: 401 });
     }
   } catch (error) {
       console.log("Something went wrong while authorization check" , error);

@@ -3,7 +3,7 @@ import prisma from '@tutorr/db';
 import { uploadFileToCloudinary } from "@/utils/uploadFileToCloudinary";
 
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
     //file , name , phone number , email  
     // use form data in frontend to upload images
     const formData = await req.formData();

@@ -13,13 +13,13 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useLogout } from "@/hooks/authHooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, Search, User, Settings, LogOut, GraduationCap, Menu } from "lucide-react"
+import { Calendar, Search, User, Settings, LogOut, Menu , BookOpen } from "lucide-react"
 
 export function StudentNavbar() {
   const [activeSection, setActiveSection] = useState("");
 
   const router = useRouter();
-  const { mutate: logout, isPending, isError } = useLogout();
+  const { mutate: logout} = useLogout();
 
   const handleLogout = () => {
     logout(undefined, {
@@ -36,7 +36,7 @@ export function StudentNavbar() {
         {/* Logo */}
         <div className="flex items-center space-x-2 flex-shrink-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+            <BookOpen className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg sm:text-xl font-bold text-foreground">Tutorr</span>
         </div>
@@ -58,8 +58,8 @@ export function StudentNavbar() {
             variant={activeSection === "tutors" ? "default" : "ghost"}
             className="flex items-center space-x-2 transition-colors hover:bg-accent hover:text-accent-foreground px-4"
             onClick={() => {
-              setActiveSection("tutors")
               router.push("/search")
+              setActiveSection("tutors")
             }}
           >
             <Search className="h-4 w-4" />

@@ -5,7 +5,6 @@ import { ChevronLeft, Camera, Upload } from "lucide-react";
 import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProfileHooks";
 import TeacherEditSkeleton from "../Loaders/TeacherEditSkeleton";
 import { toast } from "sonner";
-import { teacherDataSchema } from "@tutorr/common/schema";
 import { z } from 'zod';
 
 
@@ -34,7 +33,7 @@ interface TeacherData {
 
 export default function CreateAccountForm({ userId }: { userId: string }) {
   const { data: teacher, isError, isLoading } = useGetTeacherDetails(userId);
-  const { mutate, isPending, isError: saveError } = useSaveTeacherDetails();
+  const { mutate, isPending } = useSaveTeacherDetails();
   const [incomingFiles, setIncomingFiles] = useState<FileLinks>({
     profile_pic: "",
     banner_pic: "",
@@ -154,7 +153,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
   const handleSubmit = async (e: any) => {
     try {
       e.preventDefault();
-      const validatedData = teacherDataSchema.parse(dataToSend);
 
       const finalDataToSend: TeacherData =
       {
@@ -199,7 +197,6 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = (error as z.ZodError).issues.map(issue => {
-          const field = issue.path.join('.');
           return `${issue.message}`;
         });
         toast.error(fieldErrors.join(' , '));

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 import { uploadFileToCloudinary } from "../../../utils/uploadFileToCloudinary";
-import { generateTimeOnlyUTCSlots } from "../../../utils/utilityFunctions";
 
 
 export async function POST(req: NextRequest) {
@@ -36,7 +35,7 @@ export async function POST(req: NextRequest) {
         //parsing the incoming string data into array of strings 
         parsedExpertise = JSON.parse(formData.get("expertise") as string);
     } catch (err) {
-        return NextResponse.json({ message: "Invalid JSON in expertise or available_days" }, { status: 400 });
+        return NextResponse.json({ message: "Invalid JSON in expertise or available_days" , error : err }, { status: 400 });
     }
 
     const existingUser = await prisma.teacher.findFirst({
@@ -106,7 +105,7 @@ export async function POST(req: NextRequest) {
         } , { status : 200})
     } catch (err) {
         console.error('Upload error:', err);
-        return NextResponse.json({ error: 'Something went wrong while uploading files' }, { status: 500 });
+        return NextResponse.json({ error: err , message : "Something went wrong while uploading files" }, { status: 500 });
     }
 
 

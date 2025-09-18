@@ -181,12 +181,13 @@ export async function DELETE(req: NextRequest) {
         });
 
         return NextResponse.json({
-            message: "Override Deleted Successfully"
+            message: "Override Deleted Successfully",
         }, { status: 200 });
     } catch (error) {
         console.log("Something went wrong while deleting the override ");
         return NextResponse.json({
-            error: "Something went wrong while deleting availability"
+            message: "Something went wrong while deleting availability",
+            error
         }, { status: 500 });
     }
 }

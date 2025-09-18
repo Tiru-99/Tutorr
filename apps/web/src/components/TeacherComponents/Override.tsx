@@ -64,10 +64,10 @@ type OverrideCardProps = {
     onDeleteSuccess: () => void
 }
 
-function OverrideCard({ date, startTime, endTime, id, onDeleteSuccess }: OverrideCardProps) {
+function OverrideCard({ startTime, endTime, id, onDeleteSuccess }: OverrideCardProps) {
     const { timezone } = useScheduleContext();
     const result = formatSchedule(startTime, endTime, timezone);
-    const { mutate: deleteOverride, isPending } = useDeleteOverride();
+    const { mutate: deleteOverride } = useDeleteOverride();
 
     const handleDeleteOverride = () => {
         deleteOverride({ availabilityId: id }, {

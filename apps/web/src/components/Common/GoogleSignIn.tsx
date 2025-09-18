@@ -32,8 +32,8 @@ export const GoogleSignIn = ({ role }: { role: string }) => {
       toast.success("Sign in successfull!")
 
       router.push(`/${type.toLowerCase()}/profile`);
-    } catch (err) {
-      setError("Google sign in failed");
+    } catch (err : any) {
+      setError(err.response.data.error ?? err.response.data.message );
       console.error(err);
     } finally {
       setLoading(false);

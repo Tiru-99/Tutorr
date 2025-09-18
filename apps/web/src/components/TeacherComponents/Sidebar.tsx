@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { Calendar, User, Settings, ChevronDown, BookOpen, BarChart3, LogOut, Menu, X, Wallet } from "lucide-react"
+import { Calendar, User, Settings, ChevronDown, BookOpen, BarChart3, Menu, X, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 import LogoutButton from "../Common/LogoutButton"
 
