@@ -12,7 +12,8 @@ export interface BookingType {
 
 
 const getTeacherAvailability = async ({ queryKey }: { queryKey: [string, { teacherId: string; date: string }] }) => {
-    const [_, { teacherId, date }] = queryKey;
+    const [_ , { teacherId, date }] = queryKey;
+    console.log(_); 
     const response = await axios.get(`/api/bookings/availability?teacherId=${teacherId}&date=${date}`);
     return response.data.slots;
 };

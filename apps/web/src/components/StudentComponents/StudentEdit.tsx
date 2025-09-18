@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useGetStudentProfile, useUpdateStudentProfile } from "@/hooks/studentProfileHooks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, Camera, Loader2, ImageIcon } from "lucide-react";
 import StudentEditSkeleton from "@/components/Loaders/StudentEditLoader"
 import { toast } from "sonner";
-import { studentDataSchema } from "@tutorr/common/schema";
 import { z } from "zod";
 
 interface FileType {
@@ -98,7 +96,6 @@ export default function StudentEdit() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      const validatedData = studentDataSchema.parse(dataToSend);
       const formData = new FormData();
       formData.append("name", dataToSend.name);
       formData.append("phone_number", dataToSend.phoneNo);
@@ -120,7 +117,6 @@ export default function StudentEdit() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = (error as z.ZodError).issues.map(issue => {
-          const field = issue.path.join('.');
           return `${issue.message}`;
         });
         toast.error(fieldErrors.join(' , '));
@@ -148,7 +144,7 @@ export default function StudentEdit() {
   }
 
   return (
-    <div className="min-h-screen b">
+    <div className="min-h-[50vh] b">
       <form onSubmit={handleSubmit}>
         {/* Header */}
         <div className=" shadow:sm px-12 py-3">

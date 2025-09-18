@@ -3,9 +3,11 @@ import TeacherDetails from "@/components/Booking/TeacherDetails";
 import { useCheckAuthorization } from "@/hooks/authHooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { StudentNavbar } from "@/components/StudentComponents/Navbar";
+import Footer from "@/components/Common/Footer";
 
 export default function Page() {
-  const { data, isLoading, isError } = useCheckAuthorization();
+  const { data, isLoading } = useCheckAuthorization();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,5 +30,15 @@ export default function Page() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  return <TeacherDetails />;
+  return (
+    <>
+      <StudentNavbar/>
+      <div className="mt-10">
+        <TeacherDetails/>
+      </div>
+      <div className="mt-10">
+        <Footer/>
+      </div>
+    </>
+  );
 }

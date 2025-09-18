@@ -8,9 +8,8 @@ import {
     DialogContent,
     DialogTitle
 } from "@/components/ui/dialog";
-import { convertUtcToReadableTime } from "../../utils/utilityFunctions";
-import { verifyAndCheckout } from "../../lib/Razorpay/verifyAndCheckout";
 import { useBookTeacherSlot } from "@/hooks/bookingHooks";
+import { verifyAndCheckout } from "@/lib/Razorpay/verifyAndCheckout";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { isBefore } from "date-fns";
@@ -36,14 +35,12 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [jobId, setJobId] = useState();
     const [order, setOrder] = useState<OrderType>();
-    const { mutate, isPending, isError: bookingError } = useBookTeacherSlot();
+    const { mutate, isPending } = useBookTeacherSlot();
     const [selectedSlot, setSelectedSlot] = useState<SlotType>({
         slot: null,
         index: null
     });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [errMessage, setErrMessage] = useState<string>();
-    const [sessionId, setSessionId] = useState<string>();
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
     const { Razorpay } = useRazorpay();
 
@@ -82,9 +79,8 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 try {
                     setIsPaymentLoading(true);
                     toast.loading("Initializing payment...", { id: "payment-init" });
-
-                    const id = await verifyAndCheckout(order, studentEmail, studentName, Razorpay);
-                    setSessionId(id);
+                    
+                    await verifyAndCheckout(order, studentEmail, studentName, Razorpay);
 
                     toast.dismiss("payment-init");
                     toast.success("Payment gateway opened successfully!");
@@ -237,7 +233,6 @@ export default function BookDialog({ id, price }: { id: string, price: number })
             },
             onError: (err: any) => {
                 console.log("Something went wrong while verifying payments", err);
-                setErrMessage(err);
                 toast.dismiss("booking-request");
                 toast.error("Failed to submit booking request. Please try again.");
             }
@@ -271,7 +266,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 }}
             >
                 <DialogTrigger asChild>
-                    <Button className="bg-blue-700 text-white scale-110 cursor-pointer">Book Now</Button>
+                    <Button className="w-full bg-blue-600 text-white hover:text-black cursor-pointer border border-gray-300 hover:bg-gray-100 font-semibold py-2.5 rounded-lg shadow-sm transition">Book Now</Button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogTitle>Teacher Availability</DialogTitle>

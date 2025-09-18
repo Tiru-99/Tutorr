@@ -20,6 +20,7 @@ interface ScheduleData {
 
 const getTeacherProfile = async({queryKey} : {queryKey : [string , string]}) => {
     const[_ , id] = queryKey ; 
+    console.log(_)
     const response = await axios.get(`/api/profile/teacher?id=${id}`);
     console.log("Teacher Response" , response);
     return response.data
@@ -35,6 +36,7 @@ const saveAndUpdateTeacherProfile = async(formData : FormData) => {
 
 const getTeacherAvailability = async ({ queryKey }: { queryKey: [string, { userId: string; date: string }] }) => {
     const [ _ , { userId, date }] = queryKey;
+    console.log(_)
     const response = await axios.get(`/api/teacher/availability?userId=${userId}&date=${date}`);
     return response.data;
 };

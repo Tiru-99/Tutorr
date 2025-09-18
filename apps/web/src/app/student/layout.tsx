@@ -38,7 +38,7 @@ export default function Page({ children }: PageProps) {
         };
 
         checkAuthAndLoad();
-    }, []);
+    } , []);
 
     if (!userId || isPending) {
         return (

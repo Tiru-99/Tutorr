@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export default function LogoutButton() {
 
     const router = useRouter();
-    const { mutate: logout, isPending, isError } = useLogout();
+    const { mutate: logout, isPending } = useLogout();
 
     const handleLogout = () => {
         logout(undefined, {

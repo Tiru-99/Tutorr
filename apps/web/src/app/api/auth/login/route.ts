@@ -4,7 +4,7 @@ import prisma from '@tutorr/db'
 import jwt from 'jsonwebtoken';
 
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
 
     const { email, password, type } = await req.json();
     console.log("the incoming details are " , email , password , type);

@@ -191,7 +191,7 @@ import prisma from "@tutorr/db";
 import { Prisma } from "@tutorr/db"
 
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
     const { startTime, endTime, topic, date, price, name } = await req.json();
 
     if (!startTime || !endTime || !topic || !date || !price || !name) {
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     // query requirements : 
     // search by name , price , topic , date , startTime and endTime 
     // fist find the teacher by the day of the week and check if there is any override with status available and if the status is available 
-    let where: Prisma.TeacherWhereInput = {};
+    const where: Prisma.TeacherWhereInput = {};
 
     if (date) {
         const formatted = new Date(date); // e.g., "Wed, 20 Aug 2025"

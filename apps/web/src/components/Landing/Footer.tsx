@@ -1,5 +1,4 @@
-import { Button } from "../ui/button"
-import { ArrowRight, BookOpen, Mail, Phone, MapPin } from "lucide-react"
+import { BookOpen, Mail, Phone, MapPin } from "lucide-react"
 
 export default function Footer() {
   return (

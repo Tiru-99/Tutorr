@@ -19,7 +19,7 @@ export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { on
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [availabilityForDay, setAvailabilityForDay] = useState(false);
     const [times, setTimes] = useState([{ startTime: "9", endTime: "17" }]);
-    const { mutate, isPending, isError } = useInsertOverride();
+    const { mutate } = useInsertOverride();
     const { timezone, selectedDays } = useScheduleContext();
 
     //for the days not in array mark unavailable for day as true

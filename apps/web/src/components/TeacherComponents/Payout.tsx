@@ -129,7 +129,7 @@ export default function PayoutDialog() {
         <DialogHeader className="border-b bg-muted/40 px-6 py-4">
           <DialogTitle className="text-pretty">Choose payout method</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Select how you'd like to receive your funds. You can review details before submitting.
+            Select how you&apos;d like to receive your funds. You can review details before submitting.
           </p>
         </DialogHeader>
 

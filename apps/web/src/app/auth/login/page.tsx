@@ -13,7 +13,7 @@ import { BookOpen } from "lucide-react";
 
 export default function Login() {
     const router = useRouter();
-    const { mutate, isPending, isSuccess, isError } = useLogin();
+    const { mutate, isPending} = useLogin();
     const { data: isAuthenticated, isLoading } = useIsAuthenticated();
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [isTutor, setIsTutor] = useState<boolean>(false);
@@ -51,7 +51,6 @@ export default function Login() {
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const fieldErrors = (error as z.ZodError).issues.map(issue => {
-                    const field = issue.path.join('.');
                     return `${issue.message}`;
                 });
                 toast.error(fieldErrors.join(' , '));

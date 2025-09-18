@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
     const studentId = req.headers.get("x-student-id");
 
     if (!studentId) {
@@ -25,7 +25,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
         }, { status: 200 })
     } catch (err) {
         return NextResponse.json({
-            error: "Something went wrong while getting bookings"
+            message: "Something went wrong while getting bookings",
+            error : err
         }, { status: 500 })
     }
 }

@@ -1,9 +1,10 @@
 "use client"
 
-import { GraduationCap, Menu, X , BookOpen} from "lucide-react"
+import { Menu, X , BookOpen} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,12 +27,12 @@ export default function Navbar() {
 
         {/* Center: Navigation Links (Desktop) */}
         <div className="hidden md:flex items-center space-x-8">
-          <a
+          <Link
             href="/"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             Home
-          </a>
+          </Link>
         </div>
 
         {/* Right side: Auth Buttons (Desktop) */}
@@ -59,12 +60,12 @@ export default function Navbar() {
         <div className="md:hidden border-t bg-background">
           <div className="px-6 py-4 space-y-4">
             <div className="flex flex-col space-y-3">
-              <a
+              <Link
                 href="/"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
               >
                 Home
-              </a>
+              </Link>
             </div>
             <div className="flex flex-col space-y-2 pt-4 border-t">
               <Button variant="ghost" className="justify-start text-sm font-medium"

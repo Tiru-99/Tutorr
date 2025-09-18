@@ -142,13 +142,6 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// Calculate refund amount
-const calculateRefund = (originalAmount: number, cancelledBy: string) => {
-    if (cancelledBy === "TEACHER") {
-        return originalAmount; // 100% refund
-    }
-    return originalAmount * 0.95; // 95% refund for student
-};
 
 // Process Razorpay refund
 const processRazorpayRefund = async (paymentId: string, refundAmount: number, bookingId: string) => {

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
 import bcrypt from "bcryptjs";
-import { createRazorpayCustomer } from "../../../../lib/Razorpay/createCustomer";
-import { create } from "domain";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
     const { email, password, type , name} = await req.json();
     //check if the user exists in db or not 
 

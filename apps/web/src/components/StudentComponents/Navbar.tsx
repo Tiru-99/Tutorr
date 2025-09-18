@@ -19,7 +19,7 @@ export function StudentNavbar() {
   const [activeSection, setActiveSection] = useState("");
 
   const router = useRouter();
-  const { mutate: logout, isPending, isError } = useLogout();
+  const { mutate: logout} = useLogout();
 
   const handleLogout = () => {
     logout(undefined, {
@@ -58,8 +58,8 @@ export function StudentNavbar() {
             variant={activeSection === "tutors" ? "default" : "ghost"}
             className="flex items-center space-x-2 transition-colors hover:bg-accent hover:text-accent-foreground px-4"
             onClick={() => {
-              setActiveSection("tutors")
               router.push("/search")
+              setActiveSection("tutors")
             }}
           >
             <Search className="h-4 w-4" />

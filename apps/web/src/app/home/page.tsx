@@ -8,8 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { useGetTeachersByQuery } from "@/hooks/queryHook";
+import { useState } from "react";
 
 
 export default function Component() {
@@ -17,7 +16,6 @@ export default function Component() {
   const [selectedTopic, setSelectedTopic] = useState<string>();
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>();
   //api hook 
-  const { mutate, isPending, isError } = useGetTeachersByQuery();
   // Generate time options from 12:00 AM to 11:59 PM
   const generateTimeOptions = () => {
     const times = [];
@@ -63,11 +61,6 @@ export default function Component() {
     // mutate(dataToSend);
   }
 
-  useEffect(() => {
-    if (isError) {
-      alert("Something went wrong!");
-    }
-  }, [isError]);
 
 
   return (
@@ -251,7 +244,7 @@ export default function Component() {
                   </span>
                 </h2>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  Take control of your learning journey with our flexible platform. Whether you're a student seeking
+                  Take control of your learning journey with our flexible platform. Whether you&apos;re a student seeking
                   knowledge or a tutor sharing expertise, TuTr adapts to your schedule and goals.
                 </p>
               </div>
@@ -310,7 +303,7 @@ export default function Component() {
                   </span>
                 </h2>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  Embrace personalized education that adapts to every child's unique needs. Our platform makes
+                  Embrace personalized education that adapts to every child&apos;s  unique needs. Our platform makes
                   homeschooling accessible, effective, and engaging for families worldwide.
                 </p>
               </div>

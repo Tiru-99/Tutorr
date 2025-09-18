@@ -30,7 +30,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         router.push("/auth/login");
       },
     });
-  }, []);
+  },[]);
 
   // Centered spinner loader
   if (isPending || !userId)

@@ -17,20 +17,6 @@ enum TransactionType {
     WITHDRAWAL = "WITHDRAWAL",
 }
 
-type Transaction = {
-    id: string
-    type: TransactionType
-    amount: number
-    createdAt: string
-    notes?: string | null
-    customer?: string | null
-}
-
-type WalletResponse = {
-    pendingAmount: { _sum: { amount: number | null } }
-    amount: number
-    transactions: Transaction[]
-}
 
 // Currency Formatter
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
@@ -44,7 +30,7 @@ export default function WalletPage() {
     })
     const pageSize = 7
 
-    const { data, isLoading, error , refetch} = useGetWallet()
+    const { data, isLoading, error } = useGetWallet()
 
     if (isLoading) return <WalletSkeleton />
     if (error || !data) return <div className="p-6 text-red-500">Error fetching wallet</div>
