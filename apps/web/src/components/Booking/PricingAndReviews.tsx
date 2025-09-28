@@ -18,7 +18,6 @@ interface ReviewType {
 
 export default function PricingAndReview({ price, license, id }: { price: number; license: string; id: string }) {
     const { data, isLoading, isError } = useGetTeacherReviews(id)
-    const router = useRouter(); 
     const reviews: ReviewType[] =
         data?.response?.topReviews?.map((review: ReviewType) => ({
             name: review.student.name,
