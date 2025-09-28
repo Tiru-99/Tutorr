@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "prisma:generate": "npm run generate --workspace=@tutorr/db",
+    "build": "npm run prisma:generate && next build",
+    "dev": "npm run prisma:generate && next dev",
     "start": "next start",
     "lint": "next lint"
   },
