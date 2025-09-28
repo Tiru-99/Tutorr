@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+    "dev": "npm run prisma:generate && nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+    "prisma:generate": "npm run generate --workspace=@tutorr/db",
     "start-worker": "nodemon --watch src --exec ts-node src/scripts/start.ts",
     "stop-worker": "ts-node src/scripts/close.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
