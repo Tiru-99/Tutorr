@@ -13,7 +13,7 @@ import { BookOpen } from "lucide-react";
 
 export default function Login() {
     const router = useRouter();
-    const { mutate, isPending} = useLogin();
+    const { mutate, isPending } = useLogin();
     const { data: isAuthenticated, isLoading } = useIsAuthenticated();
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [isTutor, setIsTutor] = useState<boolean>(false);
@@ -26,9 +26,13 @@ export default function Login() {
 
     useEffect(() => {
         if (!isLoading && isAuthenticated) {
-            router.push(`/${data.type.toLowerCase()}/profile`);
+            const type = localStorage.getItem("type");
+            if (type && window.location.pathname !== `/${type.toLowerCase()}/profile`) {
+                router.push(`/${type.toLowerCase()}/profile`);
+            }
         }
     }, [isLoading, isAuthenticated, router]);
+
 
     console.log(data);
 
@@ -38,7 +42,7 @@ export default function Login() {
             setErrorMessage(""); // clear previous errors
 
             mutate(validatedData, {
-                onSuccess: () => router.push("/"),
+                onSuccess: () => router.push(`/${data.type.toLowerCase()}/profile`),
                 onError: (err: any) => {
                     // Better error extraction with fallback chain
                     const error = err?.response?.data?.message ||

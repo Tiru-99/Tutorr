@@ -4,11 +4,12 @@ import { Mail, Phone } from "lucide-react"
 import { useGetStudentProfile } from "@/hooks/studentProfileHooks"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
+import { User } from "lucide-react"
 
 export default function StudentProfilePage({ id }: { id: string }) {
   console.log("The incoming id is", id)
   const { data: student, isLoading, isError } = useGetStudentProfile(id)
-  const router = useRouter(); 
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -54,11 +55,17 @@ export default function StudentProfilePage({ id }: { id: string }) {
             <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8 -mt-16 md:-mt-12">
               {/* Profile Image */}
               <div className="flex justify-center md:justify-start">
-                <img
-                  src={student?.profile_pic || "/placeholder.svg?height=192&width=192&query=student profile picture"}
-                  alt="Profile"
-                  className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-background object-cover shadow-lg"
-                />
+                {student?.profile_pic ? (
+                  <img
+                    src={student.profile_pic}
+                    alt="Profile"
+                    className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-background object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-background bg-gray-50 flex items-center justify-center shadow-lg">
+                    <User className="text-gray-300 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
+                  </div>
+                )}
               </div>
 
               {/* Profile Details */}
@@ -67,7 +74,6 @@ export default function StudentProfilePage({ id }: { id: string }) {
                   {student?.name || "No Name"}
                 </h1>
 
-                <p className="text-muted-foreground text-lg mt-1">Computer Science Student • 3rd Year</p>
 
                 {/* Interests/Tags */}
                 <div className="flex flex-row flex-wrap justify-center md:justify-start gap-2 mt-3">
@@ -101,7 +107,7 @@ export default function StudentProfilePage({ id }: { id: string }) {
               {/* Edit Details Link */}
               <div className="flex justify-center md:justify-end md:pb-3">
                 <button className="text-primary hover:text-primary/80 hover:cursor-pointer underline text-sm sm:text-base transition-colors"
-                onClick={() => router.push("/student/edit")}>
+                  onClick={() => router.push("/student/edit")}>
                   Edit Details
                 </button>
               </div>
