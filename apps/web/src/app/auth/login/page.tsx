@@ -26,7 +26,7 @@ export default function Login() {
 
     useEffect(() => {
         if (!isLoading && isAuthenticated) {
-            router.push('/');
+            router.push(`/${data.type.toLowerCase()}/profile`);
         }
     }, [isLoading, isAuthenticated, router]);
 
