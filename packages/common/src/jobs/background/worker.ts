@@ -2,8 +2,7 @@ import { BaseWorker } from "../../bull/BaseWoker";
 import { Job } from "bullmq";
 import { Redis } from "ioredis";
 import prisma from "@tutorr/db";
-
-
+import { Prisma } from "@tutorr/db";
 
 export class BackgroundJobWorker extends BaseWorker<any> {
     constructor(redis: Redis) {
@@ -13,7 +12,7 @@ export class BackgroundJobWorker extends BaseWorker<any> {
     protected async processJob(job: Job): Promise<any> {
         //update all scheduled bookings to complete 
         try {
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx : Prisma.TransactionClient) => {
                 await tx.booking.updateMany({
                     where: {
                         status: "SCHEDULED",
