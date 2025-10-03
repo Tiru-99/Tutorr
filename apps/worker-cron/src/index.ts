@@ -65,10 +65,14 @@ const gracefulShutdown = async (signal: any) => {
     console.log(`🛑 Received ${signal}. Shutting down gracefully...`);
     try {
         if (bookingWorker) {
+            console.log("closing booking worker")
             await bookingWorker.close();
+            console.log("booking worker closed")
         }
         server.close(() => {
+            console.log("closing server");
             process.exit(0);
+        
         });
     } catch (err) {
         console.error("❌ Error during shutdown:", err);
