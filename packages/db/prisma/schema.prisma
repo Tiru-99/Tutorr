@@ -44,7 +44,7 @@ model Teacher {
   profile_pic       String?
   banner_pic        String?
   price             Int?
-  average_rating    String?
+  average_rating    Int?
   razorpay_cust_id  String?
   teacher_review    TeacherReview[]
   Schedule          Schedule[]
