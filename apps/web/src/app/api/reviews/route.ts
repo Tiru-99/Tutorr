@@ -51,6 +51,20 @@ export async function POST(req: NextRequest) {
             },
         });
 
+        // calculate new average rating
+        const agg = await prisma.teacherReview.aggregate({
+            where: { teacherId },
+            _avg: { rating: true },
+        });
+
+        const avgRating = agg._avg.rating ?? 0;
+
+       // update avg rating
+        await prisma.teacher.update({
+            where: { id: teacherId },
+            data: { average_rating : avgRating },
+        });
+
         return NextResponse.json(
             { message: "Successfully added a review" },
             { status: 200 }
@@ -84,16 +98,16 @@ export async function GET(req: NextRequest) {
         if (!review) {
             return NextResponse.json({
                 message: "No review found",
-                review : null
+                review: null
             }, { status: 200 })
         }
 
         return NextResponse.json({
             message: "Successfully fetched review",
-            review : review ?? null
+            review: review ?? null
         });
     } catch (error) {
-        console.log("Something went wrong while fetching the review" , error);
+        console.log("Something went wrong while fetching the review", error);
         return NextResponse.json({
             error
         }, { status: 500 })
