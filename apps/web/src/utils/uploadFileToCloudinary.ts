@@ -2,6 +2,11 @@ import {v2 as cloudinary} from 'cloudinary';
 import fs from 'fs';
 import path from 'path'; 
 
+cloudinary.config({
+    cloud_name : process.env.NEXT_PUBLIC_CLOUD_NAME, 
+    api_key : process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY , 
+    api_secret : process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET, 
+});
 
 export const uploadFileToCloudinary = async (file: File, folderName: string, publicId: string) => {
   const tempPath = path.join('/tmp', file.name);
