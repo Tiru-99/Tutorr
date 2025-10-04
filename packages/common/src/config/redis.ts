@@ -21,5 +21,4 @@ if (mode === "production") {
 }
 
 
-
-
+export default redis; 
