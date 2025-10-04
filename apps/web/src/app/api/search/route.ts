@@ -203,11 +203,11 @@ export async function POST(req: NextRequest) {
                 message: "Returned available teachers"
             });
         } catch (error) {
-            console.log("Something went wrong while fetching all teachers" , error); 
+            console.log("Something went wrong while fetching all teachers", error);
             return NextResponse.json({
-                error ,
-                message : "Something went wrong while fetching teachers"
-            } , { status : 500 })
+                error,
+                message: "Something went wrong while fetching teachers"
+            }, { status: 500 })
         }
     }
 
@@ -251,20 +251,21 @@ export async function POST(req: NextRequest) {
                     },
                     {
                         Schedule: {
-                            some: {
-                                days: { has: weekDay },
-                                availability: {
-                                    some: {
-                                        status: "AVAILABLE",
-                                        ...(startTime && endTime ? {
+                            days: { has: weekDay },
+                            availability: {
+                                some: {
+                                    status: "AVAILABLE",
+                                    ...(startTime && endTime
+                                        ? {
                                             startTime: { lte: endTime },
                                             endTime: { gte: startTime },
-                                        } : {}),
-                                    },
+                                        }
+                                        : {}),
                                 },
                             },
                         },
-                    },
+                    }
+
                 ],
             },
         ];
