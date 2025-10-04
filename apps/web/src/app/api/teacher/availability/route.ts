@@ -11,7 +11,6 @@ export async function POST(req: NextRequest) {
     const teacherId = req.headers.get("x-teacher-id");
 
 
-    console.log("times is", times, availability);
 
     if (!teacherId) {
         console.log("Jyada hushar mat ban mc");

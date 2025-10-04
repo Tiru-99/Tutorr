@@ -19,7 +19,7 @@ export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { on
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [availabilityForDay, setAvailabilityForDay] = useState(false);
     const [times, setTimes] = useState([{ startTime: "9", endTime: "17" }]);
-    const { mutate } = useInsertOverride();
+    const { mutate, isPending } = useInsertOverride();
     const { timezone, selectedDays } = useScheduleContext();
 
     //for the days not in array mark unavailable for day as true
@@ -116,7 +116,13 @@ export default function DateOverrideModal({ onSaveSuccess, disabledDates }: { on
                                     {/* You can put any extra components here */}
 
                                     <div className="md:mt-auto flex justify-end mt-4">
-                                        <Button onClick={handleSubmit}>Save Override</Button>
+                                        <Button
+                                            onClick={handleSubmit}
+                                            disabled={isPending}
+                                            className={`${isPending ? "bg-gray-400 cursor-not-allowed" : ""}`}
+                                        >
+                                            {isPending ? "Saving..." : "Submit"}
+                                        </Button>
                                     </div>
 
                                 </div>

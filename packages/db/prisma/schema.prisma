@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,8 +13,129 @@ model User {
   password String
   type     UserType
   googleId String?
-  teacher  Teacher? @relation
-  student  Student? @relation
+  student  Student?
+  teacher  Teacher?
+}
+
+model Teacher {
+  id                String          @id @default(uuid())
+  userId            String          @unique
+  company_name      String?
+  highest_education String?
+  years_of_exp      String?
+  about             String?
+  license           String?
+  expertise         String[]
+  subject           String?
+  profile_pic       String?
+  banner_pic        String?
+  name              String?
+  phone_number      String?
+  price             Int?
+  razorpay_cust_id  String?
+  average_rating    Int?
+  Availability      Availability[]
+  Bookings          Booking[]
+  Schedule          Schedule?
+  user              User            @relation(fields: [userId], references: [id])
+  teacher_review    TeacherReview[]
+  Transactions      Transactions[]
+  Wallet            Wallet?
+}
+
+model Student {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  interests      String[]
+  profile_pic    String?
+  banner_pic     String?
+  phoneNumber    String?
+  name           String?
+  Bookings       Booking[]
+  user           User            @relation(fields: [userId], references: [id])
+  teacher_review TeacherReview[]
+  Transactions   Transactions[]
+}
+
+model TeacherReview {
+  id        String  @id @default(uuid())
+  teacherId String
+  studentId String
+  comment   String?
+  rating    Int
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+}
+
+model Schedule {
+  id           String         @id @default(uuid())
+  teacherId    String         @unique
+  timezone     String
+  duration     Int
+  days         String[]
+  availability Availability[]
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+}
+
+model Availability {
+  id           String          @id @default(uuid())
+  teacherId    String
+  date         DateTime?
+  scheduleId   String?
+  startTime    DateTime
+  endTime      DateTime
+  availability Boolean         @default(true)
+  status       OverrideStatus? @default(AVAILABLE)
+  Schedule     Schedule?       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  teacher      Teacher         @relation(fields: [teacherId], references: [id])
+}
+
+model Booking {
+  id                 String          @id @default(uuid())
+  teacherId          String
+  studentId          String
+  startTime          DateTime?
+  meeting_url        String?
+  payment_id         String?
+  order_id           String?
+  status             BookingStatus
+  cancellationBy     CancellationBy?
+  cancellationReason String?
+  cancelledAt        DateTime?
+  endTime            DateTime?
+  amount             Decimal?
+  student            Student         @relation(fields: [studentId], references: [id])
+  teacher            Teacher         @relation(fields: [teacherId], references: [id])
+  reviews            TeacherReview?
+  transactions       Transactions[]
+}
+
+model Wallet {
+  id           String         @id @default(uuid())
+  teacherId    String         @unique
+  currency     Currency
+  amount       Decimal        @default(0.00)
+  transactions Transactions[]
+  teacher      Teacher        @relation(fields: [teacherId], references: [id])
+}
+
+model Transactions {
+  id         String          @id @default(uuid())
+  studentId  String?
+  teacherId  String
+  type       TransactionType
+  walletId   String
+  amount     Decimal
+  createdAt  DateTime        @default(now())
+  bookingId  String?
+  updatedAt  DateTime        @updatedAt
+  releasedAt DateTime?
+  booking    Booking?        @relation(fields: [bookingId], references: [id])
+  student    Student?        @relation(fields: [studentId], references: [id])
+  teacher    Teacher         @relation(fields: [teacherId], references: [id])
+  wallet     Wallet          @relation(fields: [walletId], references: [id])
 }
 
 enum UserType {
@@ -28,155 +143,11 @@ enum UserType {
   STUDENT
 }
 
-model Teacher {
-  id                String          @id @default(uuid())
-  userId            String          @unique
-  user              User            @relation(fields: [userId], references: [id])
-  phone_number      String?
-  name              String?
-  company_name      String?
-  highest_education String?
-  years_of_exp      String?
-  about             String?
-  license           String? //link of the pdf document
-  expertise         String[]
-  subject           String?
-  profile_pic       String?
-  banner_pic        String?
-  price             Int?
-  average_rating    String?
-  razorpay_cust_id  String?
-  teacher_review    TeacherReview[]
-  Schedule          Schedule[]
-  Availability      Availability[]
-  Bookings          Booking[]
-  Wallet            Wallet?
-  Transactions      Transactions[]
-}
-
-model Student {
-  id             String          @id @default(uuid())
-  userId         String          @unique
-  user           User            @relation(fields: [userId], references: [id])
-  phoneNumber    String?
-  name           String?
-  interests      String[]
-  profile_pic    String?
-  banner_pic     String?
-  teacher_review TeacherReview[]
-  Bookings       Booking[]
-  Transactions   Transactions[]
-}
-
-model TeacherReview {
-  id        String  @id @default(uuid())
-  bookingId String  @unique
-  booking   Booking @relation(fields: [bookingId], references: [id])
-  teacherId String
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id])
-  comment   String?
-  rating    Int
-}
-
-// model Session {
-//   id        String  @id @default(uuid())
-//   teacherId String
-//   teacher   Teacher @relation(fields: [teacherId], references: [id])
-//   studentId String
-//   student   Student @relation(fields: [studentId], references: [id])
-
-//   //Optional slot references
-//   slotId String?      @unique
-//   slot   SlotDetails? @relation(fields: [slotId], references: [id])
-
-//   templateSlotId String?        @unique
-//   templateSlot   TemplateSlots? @relation(fields: [templateSlotId], references: [id])
-//   meeting_url    String?
-//   payment_id     String?
-//   order_id       String?
-//   booking_status BookingStatus
-// }
-
-// enum BookingStatus {
-//   PENDING_SUCCESS
-//   SUCCESS
-//   FAILED
-// }
-
-// enum SessionStatus {
-//   SCHEDULED
-//   COMPLETED
-// }
-
-// model TemplateSlots {
-//   id        String     @id @default(uuid())
-//   teacherId String
-//   teacher   Teacher    @relation(fields: [teacherId], references: [id])
-//   slotTime  String
-//   status    StatusType
-//   session   Session?
-// }
-
-// model TeacherAvailability {
-//   id          String        @id @default(uuid())
-//   teacherId   String
-//   teacher     Teacher       @relation(fields: [teacherId], references: [id])
-//   date        String?
-//   dayOfWeek   String?
-//   isAvailable Boolean?
-//   SlotDetails SlotDetails[]
-
-//   @@unique([teacherId, date])
-// }
-
-// model SlotDetails {
-//   id                    String               @id @default(uuid())
-//   //Direct teacher relationship for (default / template) slots
-//   teacherId             String?
-//   teacher               Teacher?             @relation(fields: [teacherId], references: [id])
-//   //for availability relationship (for data specific slots)
-//   teacherAvailabilityId String?
-//   availability          TeacherAvailability? @relation(fields: [teacherAvailabilityId], references: [id], onDelete: Cascade)
-//   status                StatusType           @default(AVAILABLE)
-//   slotTime              String?
-//   session               Session?
-
-//   @@unique([teacherId, slotTime])
-//   @@unique([teacherAvailabilityId, slotTime])
-// }
-
-//used the cal.com approach to fix redundancy
-model Schedule {
-  id           String         @id @default(uuid())
-  teacherId    String         @unique
-  teacher      Teacher        @relation(fields: [teacherId], references: [id])
-  timezone     String
-  duration     Int
-  days         String[]
-  availability Availability[]
-}
-
 enum OverrideStatus {
   BOOKED
   UNAVAILABLE
   CANCELLED
   AVAILABLE
-}
-
-//compulsorily link availability to schedule
-model Availability {
-  id           String          @id @default(uuid())
-  teacherId    String
-  teacher      Teacher         @relation(fields: [teacherId], references: [id])
-  startTime    DateTime
-  endTime      DateTime //1970-01-01T00:00:00Z format
-  date         DateTime?
-  availability Boolean         @default(true)
-  scheduleId   String?
-  status       OverrideStatus? @default(AVAILABLE)
-  Schedule     Schedule?       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 }
 
 enum BookingStatus {
@@ -192,61 +163,15 @@ enum CancellationBy {
   STUDENT
 }
 
-model Booking {
-  id                 String          @id @default(uuid())
-  teacherId          String
-  teacher            Teacher         @relation(fields: [teacherId], references: [id])
-  studentId          String
-  student            Student         @relation(fields: [studentId], references: [id])
-  startTime          DateTime?
-  endTime            DateTime?
-  meeting_url        String?
-  payment_id         String?
-  order_id           String?
-  amount             Decimal?
-  cancellationBy     CancellationBy?
-  cancelledAt        DateTime?
-  cancellationReason String?
-  status             BookingStatus
-  transactions       Transactions[]
-  reviews            TeacherReview?
-}
-
-model Wallet {
-  id           String         @id @default(uuid())
-  amount       Decimal        @default(0.00)
-  currency     Currency
-  teacherId    String         @unique
-  teacher      Teacher        @relation(fields: [teacherId], references: [id])
-  transactions Transactions[]
-}
-
 enum Currency {
   USD
   INR
 }
 
-model Transactions {
-  id         String          @id @default(uuid())
-  studentId  String?
-  teacherId  String
-  type       TransactionType
-  walletId   String
-  bookingId  String?
-  amount     Decimal
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  releasedAt DateTime? //Escrow Model 
-  wallet     Wallet          @relation(fields: [walletId], references: [id])
-  booking    Booking?        @relation(fields: [bookingId], references: [id])
-  student    Student?        @relation(fields: [studentId], references: [id])
-  teacher    Teacher         @relation(fields: [teacherId], references: [id])
-}
-
 enum TransactionType {
   BOOKING
-  REFUND //platform -> student 
-  PAYOUT //session fee credited to teacher's account after the session  
-  WITHDRAWAL // teacher withdraws money to the bank 
+  REFUND
+  PAYOUT
+  WITHDRAWAL
   COMPLETED
 }

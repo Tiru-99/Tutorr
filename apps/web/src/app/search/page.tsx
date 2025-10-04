@@ -383,7 +383,7 @@ export default function Component() {
                     {/* Profile Image - Perfect Circle, Overlapping Banner */}
                     <div className="absolute left-4 -bottom-12 w-24 h-24">
                       <Image
-                        src={tutor.profile_pic || "/placeholder-profile.jpg"}
+                        src={tutor.profile_pic || "/images/default.png"}
                         alt={tutor.name || "Profile picture"}
                         fill
                         className="rounded-full object-cover border-4 border-white shadow-md"
@@ -400,8 +400,7 @@ export default function Component() {
 
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{tutor.average_rating || "4.5"}</span>
-                        <span className="text-sm text-gray-500">(127)</span>
+                        <span className="text-sm font-medium">{tutor.average_rating || "No ratings"}</span>
                       </div>
 
                       <div className="flex flex-wrap gap-1">

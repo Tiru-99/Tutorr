@@ -29,14 +29,20 @@ export const teacherDataSchema = z.object({
         .min(2, "Education info too short"),
     years_of_exp: z
         .string()
-        .regex(/^[0-9]+$/, "Years of experience must be a number"),
+        .regex(/^[0-9]+$/, "Years of experience must be a number")
+        .refine(val => Number(val) <= 99, {
+            message: "Experience cannot exceed 99 years",
+        }),
     about: z
         .string()
-        .min(10, "About section must be at least 10 characters"),
+        .min(10, "About section must be at least 10 characters")
+        .max(200, "About section must be less than 200 characters"),
     expertise: z.array(z.string()).min(2, "Select at least 2 expertise fields"),
     price: z
         .number()
-        .min(0, "Price cannot be negative"),
+        .min(1, "Price cannot be negative")
+        .max(500, "Price cannot be more than 500$")
+
 });
 
 // Combined 

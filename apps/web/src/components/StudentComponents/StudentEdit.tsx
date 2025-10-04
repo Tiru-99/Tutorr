@@ -12,6 +12,7 @@ import { ChevronLeft, Camera, Loader2, ImageIcon } from "lucide-react";
 import StudentEditSkeleton from "@/components/Loaders/StudentEditLoader"
 import { toast } from "sonner";
 import { z } from "zod";
+import { studentDataSchema } from "@tutorr/common/schema";
 
 interface FileType {
   profile_pic: File | null;
@@ -35,7 +36,7 @@ export default function StudentEdit() {
     interests: [] as string[],
   });
 
-  const interests = ["science", "maths", "geography", "physics"];
+  const interests = ["science", "maths", "history", "IT" , "development" , "english"];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,10 +97,11 @@ export default function StudentEdit() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
+      const validatedData = studentDataSchema.parse(dataToSend);
       const formData = new FormData();
-      formData.append("name", dataToSend.name);
-      formData.append("phone_number", dataToSend.phoneNo);
-      formData.append("interests", JSON.stringify(dataToSend.interests));
+      formData.append("name", validatedData.name);
+      formData.append("phone_number", validatedData.phoneNo);
+      formData.append("interests", JSON.stringify(validatedData.interests));
       formData.append("email", data.email);
 
       if (files.profile_pic) formData.append("profile_pic", files.profile_pic);
@@ -113,7 +115,7 @@ export default function StudentEdit() {
           toast.error("Failed to update profile. Please try again ");
         },
       });
-      
+
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = (error as z.ZodError).issues.map(issue => {
@@ -150,9 +152,7 @@ export default function StudentEdit() {
         <div className=" shadow:sm px-12 py-3">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+              
               <h1 className="text-xl font-semibold text-gray-900">Create Account</h1>
             </div>
             <Button
@@ -183,7 +183,7 @@ export default function StudentEdit() {
                         ? incomingFiles.profile_pic
                         : files.profile_pic
                           ? URL.createObjectURL(files.profile_pic)
-                          : "/images/man.jpg"
+                          : "/images/default.png"
                     }
                     alt="Profile"
                     className="object-cover"

@@ -6,6 +6,7 @@ import { useGetTeacherDetails, useSaveTeacherDetails } from "@/hooks/teacherProf
 import TeacherEditSkeleton from "../Loaders/TeacherEditSkeleton";
 import { toast } from "sonner";
 import { z } from 'zod';
+import { teacherDataSchema } from "@tutorr/common/schema";
 
 
 interface ImageType {
@@ -91,7 +92,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
   //refs 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const expertiseOptions = ["English", "Maths", "History", "I.T", "Development", "Geography"];
+  const expertiseOptions = ["English", "Maths", "History", "I.T", "Development", "Science"];
 
   const toggleExpertise = (expertise: string) => {
     setSelectedExpertise((prev) =>
@@ -153,12 +154,14 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
   const handleSubmit = async (e: any) => {
     try {
       e.preventDefault();
-
+      
       const finalDataToSend: TeacherData =
       {
         ...dataToSend,
         expertise: selectedExpertise,
       }
+
+      teacherDataSchema.parse(finalDataToSend)
 
       console.log("final data to send is", finalDataToSend);
 
@@ -356,7 +359,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
                     <input
                       type="number"
                       placeholder="Enter price in USD"
-                      value={dataToSend.price}
+                      value={dataToSend.price ?? 0}
                       onChange={(e) => setDataToSend((prev) => ({ ...prev, price: Number(e.target.value) }))}
                       className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
