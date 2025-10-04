@@ -251,19 +251,17 @@ export async function POST(req: NextRequest) {
                     },
                     {
                         Schedule: {
-                            days: { has: weekDay },
+                            days: { has: weekDay }, // fine
                             availability: {
                                 some: {
                                     status: "AVAILABLE",
                                     ...(startTime && endTime
-                                        ? {
-                                            startTime: { lte: endTime },
-                                            endTime: { gte: startTime },
-                                        }
+                                        ? { startTime: { lte: endTime }, endTime: { gte: startTime } }
                                         : {}),
                                 },
                             },
-                        },
+                        }
+
                     }
 
                 ],
