@@ -20,7 +20,7 @@ export default function Navbar() {
             onClick={()=> router.push("/auth/login")}>Log in</button>
             <Button className="bg-green-700 hover:bg-green-800 text-shadow-xs text-white cursor-pointer px-4 py-2 rounded-md font-medium shadow-lg"
             onClick={() => router.push("/auth/signup")}>
-              Become a tutor
+              Register
             </Button>
           </div>
         </div>
