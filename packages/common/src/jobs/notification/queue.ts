@@ -54,7 +54,6 @@ export class NotificationQueue extends BaseQueue<any> {
 
         // Job IDs to remove
         const jobIds = [
-            `notification-${bookingId}-instant`,
             `notification-${bookingId}-1hr`,
             `notification-${bookingId}-on-time`,
         ];

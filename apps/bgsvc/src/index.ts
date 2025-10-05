@@ -1,13 +1,13 @@
 import express from 'express';
-import redis from '@tutorr/common';
-import { BackgroundJobQueue, BackgroundJobWorker, NotificationQueue, NotificationWorker } from '@tutorr/common';
+import redis, { BackgroundJobWorker } from '@tutorr/common';
+import { NotificationQueue, NotificationWorker, BackgroundJobQueue } from '@tutorr/common';
 import { createServer } from 'http';
-import dotenv from 'dotenv';
 import cors from 'cors';
 
-dotenv.config({
-    path: "./.env"
-});
+// Bull-board imports
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { createBullBoard } from "@bull-board/api";
+import { ExpressAdapter } from "@bull-board/express";
 
 const app = express();
 const server = createServer(app);
@@ -17,41 +17,73 @@ app.use(cors({
     credentials: false,
 }));
 
-// Initialize queues and workers
-// const backgroundJobQueue = new BackgroundJobQueue(redis);
-// const backgroundJobWorker = new BackgroundJobWorker(redis);
+// initialize queues
 const notificationQueue = new NotificationQueue(redis);
+const backgroundJobQueue = new BackgroundJobQueue(redis);
 
-// Don't create notification worker here, create it after server initialization
+// worker instances
 let notificationWorker: any;
+let backgroundWorker: any;
 
+// setup Bull Board
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+createBullBoard({
+    queues: [
+        new BullMQAdapter(backgroundJobQueue.getQueue()),
+        new BullMQAdapter(notificationQueue.getQueue())
+    ],
+    serverAdapter,
+});
+
+app.use("/admin/queues", serverAdapter.getRouter());
+
+// clean existing schedulers and setup cron
+// note : scheduler id is not idempotent its a hardcoded val .... 
+const setupSchedulers = async () => {
+    try {
+        console.log("🧹 Cleaning existing schedulers...");
+        const existingSchedulers = await backgroundJobQueue.getQueue().getJobSchedulers();
+
+        if (existingSchedulers.length > 0) {
+            console.log(`Found ${existingSchedulers.length} existing scheduler(s):`);
+            for (const scheduler of existingSchedulers) {
+                console.log(`  - Removing: ${scheduler.key} (pattern: ${scheduler.pattern})`);
+                await backgroundJobQueue.getQueue().removeJobScheduler(scheduler.key);
+            }
+        } else {
+            console.log("✅ No existing schedulers to clean");
+        }
+
+        console.log("⏰ Setting up cron job...");
+        await backgroundJobQueue.addCron("cron", {
+            attempts: 3,
+            backoff: 3000,
+            removeOnFail: 100,
+        });
+        console.log("✅ Cron job scheduled successfully");
+
+    } catch (error) {
+        console.error("❌ Failed to setup schedulers:", error);
+        throw error;
+    }
+};
+
+// start all workers
 const startWorkers = async () => {
     try {
         console.log("🚀 Starting workers...");
 
-        // Wait for background job worker to be ready
-        // await backgroundJobWorker.waitUntilReady();
-        console.log("✅ Background job worker is ready");
-
-        // Create and start notification worker
-        // Replace 'NotificationWorker' with the actual class name from your common package
-
+        // Start notification worker
         notificationWorker = new NotificationWorker(redis);
         await notificationWorker.waitUntilReady();
         console.log("✅ Notification worker is ready and listening for jobs");
 
-        // Add the recurring background job
-        // await backgroundJobQueue.addJob(
-        //     "bgsq",
-        //     {},
-        //     {
-        //         jobId: "bgsq", // make sure jobId is consistent
-        //         repeat: { every: 12 * 60 * 60 * 1000 },
-        //         attempts: 3,
-        //         backoff: { type: "exponential", delay: 5000 },
-        //     }
-        // );
-        // console.log("✅ Recurring background job scheduled (every 12 hours)");
+        // Start background job worker
+        backgroundWorker = new BackgroundJobWorker(redis);
+        await backgroundWorker.waitUntilReady();
+        console.log("✅ Background job worker is ready and listening for jobs");
 
         console.log("✅ All workers are running and ready to process jobs");
 
@@ -61,40 +93,34 @@ const startWorkers = async () => {
     }
 };
 
+// Health check endpoint
 app.get("/health", (req, res) => {
     res.json({
         message: "Health Ok!",
         workers: {
-            // backgroundJobWorker: !!backgroundJobWorker,
+            backgroundJobWorker: !!backgroundWorker,
             notificationWorker: !!notificationWorker
+        },
+        queues: {
+            backgroundJobQueue: backgroundJobQueue.getQueueName(),
+            notificationQueue: notificationQueue.getQueueName()
         },
         timestamp: new Date().toISOString()
     });
 });
 
-// Add endpoint to manually trigger notification (optional)
-app.post("/trigger-notification", async (req, res) => {
-    try {
-        // Example of how to add a notification job
-        await notificationQueue.addJob("notification", {
-            type: "test",
-            message: "Manual notification trigger",
-            timestamp: new Date().toISOString()
-        });
-        res.json({ message: "Notification job added successfully" });
-    } catch (error) {
-        console.error("❌ Error adding notification job:", error);
-        res.status(500).json({ error: "Failed to add notification job" });
-    }
-});
-
+// Start the server
 server.listen(8003, async () => {
-    console.log(`🌟 The server is up and running on port 8003`);
+    console.log(`🌟 Server is up and running on port 8003`);
+    console.log(`📊 Bull Board available at http://localhost:8003/admin/queues`);
+    
     try {
-        // Start workers AFTER server is listening
+        await setupSchedulers();
         await startWorkers();
+        
+        console.log("🎉 Application started successfully!");
     } catch (error) {
-        console.error("❌ Failed to start workers, shutting down server");
+        console.error("❌ Failed to start application, shutting down server");
         process.exit(1);
     }
 });
@@ -105,17 +131,29 @@ const gracefulShutdown = async (signal: string) => {
     try {
         console.log("🔄 Stopping workers...");
 
-        // Close workers in reverse order
+        // Close workers
+        if (backgroundWorker && typeof backgroundWorker.close === 'function') {
+            await backgroundWorker.close();
+            console.log("✅ Background job worker closed");
+        }
+
         if (notificationWorker && typeof notificationWorker.close === 'function') {
             await notificationWorker.close();
             console.log("✅ Notification worker closed");
         }
 
-        // if (backgroundJobWorker && typeof backgroundJobWorker.close === 'function') {
-        //     await backgroundJobWorker.close();
-        //     console.log("✅ Background job worker closed");
-        // }
+        // Close queues
+        console.log("🔄 Closing queues...");
+        await backgroundJobQueue.getQueue().close();
+        await notificationQueue.getQueue().close();
+        console.log("✅ Queues closed");
 
+        // Close Redis connection
+        console.log("🔄 Closing Redis connection...");
+        await redis.quit();
+        console.log("✅ Redis connection closed");
+
+        // Close server
         console.log("🔄 Closing server...");
         server.close(() => {
             console.log("✅ Server closed successfully");
@@ -150,4 +188,4 @@ process.on('unhandledRejection', (reason, promise) => {
     gracefulShutdown('unhandledRejection');
 });
 
-export { notificationQueue };
+export { notificationQueue, backgroundJobQueue };

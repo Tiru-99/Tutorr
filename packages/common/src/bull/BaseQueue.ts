@@ -16,7 +16,7 @@ import { Redis } from 'ioredis';
 export abstract class BaseQueue<T = any> {
     protected queue: Queue; // Remove the generic here
     protected queueName: string;
-    
+
     constructor(queueName: string, connection: Redis, options?: QueueOptions) {
         this.queueName = queueName;
         this.queue = new Queue(queueName, { // Remove generic here too
@@ -24,29 +24,49 @@ export abstract class BaseQueue<T = any> {
             ...options
         });
 
-        this.setupEvents(); 
+        this.setupEvents();
     }
 
     private setupEvents() {
         this.queue.on('error', (err) => {
             console.error(`Queue ${this.queueName} error:`, err);
         });
-        
+
         this.queue.on('waiting', (job) => {
             console.log(`Job ${job.id} waiting in ${this.queueName}`);
         });
     }
-    
+
     async addJob(jobName: string, data: T, options?: JobsOptions) {
+        console.log("Adding job")
         return await this.queue.add(jobName, data, options);
     }
 
+    async addCron(jobName: string, options?: JobsOptions) {
+        const schedulerId = 'cron-job'; //fixed id because of only one cron job
+        const pattern = '0 0 */12 * * *'; // every 12 hours
 
-    async getQueueName(){
+        console.log("Executing cron job");
+
+        const jobAdded =  await this.queue.upsertJobScheduler(
+            schedulerId,
+            { pattern },
+            {
+                name: jobName,
+                data : {},
+                opts: options,
+            }
+        );
+
+        return jobAdded; 
+    }
+
+
+    async getQueueName() {
         return this.queueName;
     }
 
-    getQueue(){
+    getQueue() {
         return this.queue;
     }
 }
