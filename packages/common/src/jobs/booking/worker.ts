@@ -179,21 +179,16 @@ export class BookingWorker extends BaseWorker<any> {
                 }
             })
 
-
             //send notification 
             //notification queue here
             const notificationQueue = new NotificationQueue(redis);
 
-            const jobTypes: NotificationType[] = ["instant", "one-hour-before", "on-time"];
-            
-            jobTypes.forEach((jobType) => {
-                notificationQueue.addBookingNotification({
-                    bookingId: booking.id,
-                    startTime: booking.startTime,
-                    jobType,
-                });
+            //jobType isn't actually required here         
+            notificationQueue.addBookingNotification({
+                bookingId: booking.id,
+                startTime: booking.startTime,
+                jobType: "instant"
             });
-
 
             //release lock 
             await redis.del(lockKey);

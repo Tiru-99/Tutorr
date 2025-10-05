@@ -47,7 +47,7 @@ export default function TeacherProfilePage({ id }: { id: string }) {
                                         {/* Profile Image */}
                                         <div className="flex justify-center md:justify-start">
                                             <img
-                                                src={teacher.profile_pic || "/images/man.jpg"}
+                                                src={teacher.profile_pic || "/images/default.png"}
                                                 alt="Profile"
                                                 className="w-32 h-32 sm:w-40 sm:h-40 md:w-60 md:h-60 rounded-full border-4 border-white object-cover shadow-md"
                                             />
