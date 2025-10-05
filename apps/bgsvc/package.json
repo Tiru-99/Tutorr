@@ -5,6 +5,7 @@
   "scripts": {
     "clean:schedulers": "ts-node src/scripts/cleanSchedulers.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+    "prisma:generate": "npm run generate --workspace=@tutorr/db",
     "start": "ts-node src/index.ts"
   },
   "keywords": [],
