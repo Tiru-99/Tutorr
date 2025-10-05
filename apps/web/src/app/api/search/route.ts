@@ -193,11 +193,12 @@ import { Prisma } from "@tutorr/db"
 
 export async function POST(req: NextRequest) {
     const { startTime, endTime, topic, date, price, name } = await req.json();
-
-    if (!startTime || !endTime || !topic || !date || !price || !name) {
+    console.log(" the incoming data to the backend is " , startTime , endTime , topic , date , price , name); 
+    if (!startTime && !endTime && !topic && !date && !price && !name) {
         //user has passed no filters then return him all teachers 
         try {
             const teachers = await prisma.teacher.findMany();
+            console.log("Coming in the if part bro !");
             return NextResponse.json({
                 teachers,
                 message: "Returned available teachers"
@@ -294,6 +295,8 @@ export async function POST(req: NextRequest) {
         };
     }
 
+    console.log("the where query is " , where)
+
 
     try {
         // finally write the query 
@@ -304,6 +307,8 @@ export async function POST(req: NextRequest) {
                 Schedule: true,
             }
         });
+
+        console.log("The available teachers are " , availableTeachers);
 
         return NextResponse.json({
             teachers: availableTeachers,
@@ -316,8 +321,5 @@ export async function POST(req: NextRequest) {
             error
         }, { status: 500 })
     }
-
-
-
 
 }
