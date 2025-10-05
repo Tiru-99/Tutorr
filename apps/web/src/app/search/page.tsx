@@ -22,10 +22,11 @@ import { useRouter } from "next/navigation";
 import { DateTime } from "luxon"
 import { StudentNavbar } from "@/components/StudentComponents/Navbar"
 import Navbar from "@/components/Common/UnauthorizedNavbar"
+import { toast } from "sonner"
 
 export default function Component() {
   const [date, setDate] = useState<Date>();
-  const subjects = ["History", "Development", "Maths", "Geography", "IT"];
+  const subjects = ["History", "Development", "Maths", "Geography", "IT" , "Science"];
   const [searchQuery, setSearchQuery] = useState("")
   const [priceRange, setPriceRange] = useState([0, 500])
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -108,9 +109,13 @@ export default function Component() {
 
     mutate(dataToSend, {
       onSuccess: (data) => {
+       
         setTeacherData(data.teachers);
+      },
+      
+      onError : () => {
+        toast.error("Something went wrong while fetching the query")
       }
-      //TODO : add an onerror here 
     });
   }
 
@@ -383,7 +388,7 @@ export default function Component() {
                     {/* Profile Image - Perfect Circle, Overlapping Banner */}
                     <div className="absolute left-4 -bottom-12 w-24 h-24">
                       <Image
-                        src={tutor.profile_pic || "/placeholder-profile.jpg"}
+                        src={tutor.profile_pic || "/images/default.png"}
                         alt={tutor.name || "Profile picture"}
                         fill
                         className="rounded-full object-cover border-4 border-white shadow-md"
@@ -400,7 +405,7 @@ export default function Component() {
 
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{tutor.average_rating || "Nill"}</span>
+                        <span className="text-sm font-medium">{tutor.average_rating || "No Ratings"}</span>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
