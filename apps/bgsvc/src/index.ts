@@ -40,6 +40,7 @@ createBullBoard({
 app.use("/admin/queues", serverAdapter.getRouter());
 
 // clean existing schedulers and setup cron
+// note : scheduler id is not idempotent its a hardcoded val .... 
 const setupSchedulers = async () => {
     try {
         console.log("🧹 Cleaning existing schedulers...");
