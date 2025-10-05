@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "clean:schedulers": "ts-node src/scripts/cleanSchedulers.ts",
+    "clean:notifications":"ts-node src/scripts/cleanNotifications.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
     "prisma:generate": "npm run generate --workspace=@tutorr/db",
     "start": "ts-node src/index.ts"
