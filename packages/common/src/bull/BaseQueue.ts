@@ -58,7 +58,6 @@ export abstract class BaseQueue<T = any> {
             }
         );
 
-        console.log("job added" , jobAdded);
         return jobAdded; 
     }
 

@@ -5,9 +5,7 @@
   "scripts": {
     "clean:schedulers": "ts-node src/scripts/cleanSchedulers.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
-    "start:notification" : "ts-node src/index.ts",
-    "start:cron": "ts-node src/scheduler.ts",
-    "start":" npm run clean:schedulers && npm run start:notification && npm run start:cron"
+    "start": "ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +18,7 @@
     "@tutorr/common": "*",
     "arg": "^4.1.3",
     "bull-board": "^1.7.2",
+    "bullmq": "^5.60.0",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2"
