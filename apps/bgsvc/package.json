@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts"
+    "clean:schedulers": "ts-node src/scripts/cleanSchedulers.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+    "start:notification" : "ts-node src/index.ts",
+    "start:cron": "ts-node src/scheduler.ts",
+    "start":" npm run clean:schedulers && npm run start:notification && npm run start:cron"
   },
   "keywords": [],
   "author": "",

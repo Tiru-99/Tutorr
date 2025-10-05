@@ -1,13 +1,8 @@
 import express from 'express';
 import redis from '@tutorr/common';
-import { BackgroundJobQueue, BackgroundJobWorker, NotificationQueue, NotificationWorker } from '@tutorr/common';
+import { NotificationQueue, NotificationWorker } from '@tutorr/common';
 import { createServer } from 'http';
-import dotenv from 'dotenv';
 import cors from 'cors';
-
-dotenv.config({
-    path: "./.env"
-});
 
 const app = express();
 const server = createServer(app);
