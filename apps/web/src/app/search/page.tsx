@@ -419,7 +419,7 @@ export default function Component() {
                         </Badge>}
                       </div>
 
-                      <p className="text-sm text-gray-600 line-clamp-2">{tutor.about}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{tutor.about?.slice(0 , 40)}...</p>
 
                       <div className="flex items-center justify-between pt-2">
                         <div>

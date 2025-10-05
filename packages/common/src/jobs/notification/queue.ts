@@ -8,7 +8,7 @@ export class NotificationQueue extends BaseQueue<any> {
     }
 
     async addBookingNotification(jobData : NotificationJobType ) {
-        const { bookingId , startTime , jobType } = jobData;
+        const { bookingId , startTime , jobType} = jobData;
 
         if(!startTime){
             throw new Error("No Start Time received" + bookingId);

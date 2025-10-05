@@ -5,19 +5,20 @@ import { useGetTeacherById } from "@/hooks/queryHook";
 import PricingAndReview from "@/components/Booking/PricingAndReviews";
 import { useParams } from "next/navigation";
 import ProfileLazyLoader from "../Loaders/ProfilePageLoader";
+import { User } from "lucide-react";
 
 
 export default function TeacherDetails() {
-    const params = useParams(); 
-    const id = params.id as string; 
+    const params = useParams();
+    const id = params.id as string;
     const { data: teacher, isLoading, isError } = useGetTeacherById(id! as string);
     console.log("The data isss", teacher);
 
-    
+
 
 
     if (isLoading) {
-        return <ProfileLazyLoader/>;
+        return <ProfileLazyLoader />;
     }
 
     if (isError) {
@@ -31,99 +32,105 @@ export default function TeacherDetails() {
     return (
         <>
             {/* for the context api */}
-                <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-10">
-                    <div className="lg:w-3/4 w-full">
-                        <div className="border border-gray-300 rounded-lg">
-                            <div className="relative">
-                                {/* Banner Image */}
-                                <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
-                                    <img
-                                        src={teacher.banner_pic || "/images/banner.jpg"}
-                                        alt="Banner"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+            <div className="flex flex-col lg:flex-row gap-6 lg:max-w-full lg:justify-center lg:px-10">
+                <div className="lg:w-3/4 w-full">
+                    <div className="border border-gray-300 rounded-lg">
+                        <div className="relative">
+                            {/* Banner Image */}
+                            <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
+                                <img
+                                    src={teacher.banner_pic || "/images/banner.jpg"}
+                                    alt="Banner"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
 
-                                {/* Profile section */}
-                                <div className="px-4 sm:px-6 md:px-8 pb-4">
-                                    <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8 -mt-16 md:-mt-12">
-                                        {/* Profile Image */}
-                                        <div className="flex justify-center md:justify-start">
+                            {/* Profile section */}
+                            <div className="px-4 sm:px-6 md:px-8 pb-4">
+                                <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8 -mt-16 md:-mt-12">
+                                    {/* Profile Image */}
+                                    <div className="flex justify-center md:justify-start ">
+                                        {teacher?.profile_pic ? (
                                             <img
-                                                src={teacher.profile_pic || "/images/man.jpg"}
+                                                src={teacher.profile_pic}
                                                 alt="Profile"
-                                                className="w-32 h-32 sm:w-40 sm:h-40 md:w-60 md:h-60 rounded-full border-4 border-white object-cover shadow-md"
+                                                className="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full border-4 border-background object-cover shadow-lg"
                                             />
+                                        ) : (
+                                            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full border-4 border-background bg-gray-50 flex items-center justify-center shadow-lg">
+                                                <User className="text-gray-300 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Profile Details */}
+                                    <div className="flex flex-col items-center md:items-start md:translate-y-4 md:pb-3">
+                                        <h2 className="font-bold text-xl sm:text-2xl">{teacher.name || "No name"}</h2>
+
+                                        {/* Interests/Tags */}
+                                        <div className="flex flex-row flex-wrap justify-center md:justify-start gap-1 mt-2">
+                                            {teacher.expertise?.length > 0 ? (
+                                                teacher.expertise.map((interest: string, index: number) => (
+                                                    <div
+                                                        key={index}
+                                                        className="border border-gray-300 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm text-gray-700 rounded-full"
+                                                    >
+                                                        {interest}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-gray-500 text-sm">No current interests</div>
+                                            )}
                                         </div>
 
-                                        {/* Profile Details */}
-                                        <div className="flex flex-col items-center md:items-start mt-2 md:mt-0 md:pb-3">
-                                            <h2 className="font-bold text-xl sm:text-2xl">{teacher.name || "No name"}</h2>
-
-                                            {/* Interests/Tags */}
-                                            <div className="flex flex-row flex-wrap justify-center md:justify-start gap-1 mt-2">
-                                                {teacher.expertise?.length > 0 ? (
-                                                    teacher.expertise.map((interest: string, index: number) => (
-                                                        <div
-                                                            key={index}
-                                                            className="border border-gray-300 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm text-gray-700 rounded-full"
-                                                        >
-                                                            {interest}
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="text-gray-500 text-sm">No current interests</div>
-                                                )}
+                                        {/* Contact Info */}
+                                        <div className="flex flex-col sm:flex-row justify-center md:justify-between gap-3 sm:gap-6 md:gap-32 mt-3 sm:mt-4 w-full">
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                <Mail size={16} className="text-gray-600" />
+                                                <p className="text-blue-600 text-sm sm:text-base truncate">{teacher.company_name || "Urbantap"}</p>
                                             </div>
 
-                                            {/* Contact Info */}
-                                            <div className="flex flex-col sm:flex-row justify-center md:justify-between gap-3 sm:gap-6 md:gap-32 mt-3 sm:mt-4 w-full">
-                                                <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Mail size={16} className="text-gray-600" />
-                                                    <p className="text-blue-600 text-sm sm:text-base truncate">{teacher.company_name || "Urbantap"}</p>
-                                                </div>
-
-                                                <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Phone size={16} className="text-gray-600" />
-                                                    <p className="text-blue-600 text-sm sm:text-base">{teacher.years_of_exp  || "10 Years of Exp"} years of exp</p>
-                                                </div>
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                <Phone size={16} className="text-gray-600" />
+                                                <p className="text-blue-600 text-sm sm:text-base">{teacher.years_of_exp || "10 Years of Exp"} years of exp</p>
                                             </div>
+                                        </div>
 
-                                            <div className="mt-4 self-start">
-                                                <div className="flex items-start gap-1 sm:gap-2">
-                                                    <Phone size={16} className="text-gray-600" />
-                                                    <p className="text-blue-600 text-sm sm:text-base">
-                                                        {teacher.highest_education || "B.Tech Civil Engineering"}
-                                                    </p>
-                                                </div>
+                                        <div className="mt-4 self-start">
+                                            <div className="flex items-start gap-1 sm:gap-2">
+                                                <Phone size={16} className="text-gray-600" />
+                                                <p className="text-blue-600 text-sm sm:text-base">
+                                                    {teacher.highest_education || "B.Tech Civil Engineering"}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* About Me Section */}
-                            <div className="md:px-16 pl-4 mt-4 mb-16">
-                                <h2 className="font-semibold text-lg">About Me</h2>
-                                <p className="text-sm text-gray-500 whitespace-normal break-words">
-                                    {teacher.about}
-                                </p>
-                            </div>
-                            
-
                         </div>
-                    </div>
 
-                    {/* Show LicenseComponent on all except md (tablet) */}
-                    <div className="block md:hidden lg:block ">
-                        <PricingAndReview price = {teacher.price} license={teacher.license} id = {id}/>
-                    </div>
+                        {/* About Me Section */}
+                        <div className="md:px-16 pl-4 mt-4 mb-16">
+                            <h2 className="font-semibold text-lg">About Me</h2>
+                            <p className="text-sm text-gray-500 whitespace-normal break-words">
+                                {teacher.about}
+                            </p>
+                        </div>
 
-                    {/* Show TabletLicenseComponent only on md (tablet) screens */}
-                    <div className="hidden md:block lg:hidden ">
-                        <PricingAndReview price = {teacher.price} license = {teacher.license} id = {id}/>
+
                     </div>
                 </div>
+
+                {/* Show LicenseComponent on all except md (tablet) */}
+                <div className="block md:hidden lg:block ">
+                    <PricingAndReview price={teacher.price} license={teacher.license} id={id} />
+                </div>
+
+                {/* Show TabletLicenseComponent only on md (tablet) screens */}
+                <div className="hidden md:block lg:hidden ">
+                    <PricingAndReview price={teacher.price} license={teacher.license} id={id} />
+                </div>
+            </div>
 
         </>
     )
