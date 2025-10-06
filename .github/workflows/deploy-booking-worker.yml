@@ -1,0 +1,39 @@
+name: Worker Cron CI/CD
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'apps/worker-cron/**'  
+
+jobs:
+  deploy-worker-cron:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      
+      - name: Deploy worker-cron to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/Tutorr   
+            git fetch --all
+            git reset --hard origin/master
+            cd apps/worker-cron
+            npm ci
+            pm2 reload worker 
