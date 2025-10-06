@@ -3,7 +3,7 @@ name: Background Worker CI/CD
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'apps/bgsvc/**'  
 
@@ -33,7 +33,7 @@ jobs:
           script: |
             cd /home/ubuntu/Tutorr   
             git fetch --all
-            git reset --hard origin/master
+            git reset --hard origin/main
             cd apps/bgsvc
             npm ci
             pm2 reload tutorr-cron 

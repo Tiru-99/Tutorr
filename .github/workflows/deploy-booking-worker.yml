@@ -3,7 +3,7 @@ name: Worker Cron CI/CD
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'apps/worker-cron/**'  
 
@@ -33,7 +33,7 @@ jobs:
           script: |
             cd /home/ubuntu/Tutorr   
             git fetch --all
-            git reset --hard origin/master
+            git reset --hard origin/main
             cd apps/worker-cron
             npm ci
             pm2 reload worker 
