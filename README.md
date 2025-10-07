@@ -108,10 +108,7 @@ RAZORPAYX_KEY_ID =
 
 # Env for root
 
-NEXT_PUBLIC_CLOUD_NAME="dmlnvdv3y"
-NEXT_PUBLIC_CLOUDINARY_API_KEY="368237727792749"
-NEXT_PUBLIC_CLOUDINARY_API_SECRET="y_HcSJ7oteNNww9Km_bTdhOTq14"
-REDIS_URL=rediss://default:ATQDAAIncDIyZjJkZGFkNTM2NmQ0Nzg5YTA5NjVjYjhkYjNiMjk4M3AyMTMzMTU@delicate-octopus-13315.upstash.io:6379
+REDIS_URL="I am using upstash redis "
 REDIS_PORT =6379
 RAZORPAY_KEY=rzp_test_RDppVjCb1nRJNQ
 RAZORPAY_SECRET_KEY=GpMSC6B04srpjDrA8T0yBi1Z
@@ -119,7 +116,25 @@ RESEND_API_KEY=re_SUZz8F9m_BreDVEPaUXmRKxFvYfW6XunB
 GMAIL_PASS =nrvrgsjmgmmzbpmq
 GMAIL_USER =noreplytutorr@gmail.com
 REDIS_HOST ="localhost"
-NODE_ENV = "development"
+NODE_ENV = "development" # or production if deploying
+
+ 
+#Env for packages/db
+
+DATABASE_URL="enter your own url " #if using docker use docker based url
+```
+
+<br/>
+<h4> Installing dependencies and running the project</h4>
+
+```bash
+# Run this command ar root 
+npm install
+npm run dev
+```
+
+
+
 
 
 
