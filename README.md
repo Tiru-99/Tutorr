@@ -133,6 +133,14 @@ npm install
 npm run dev
 ```
 
+<h2>License</h2>
+
+<p>
+This project is licensed under the <b>MIT License</b> — see the <a href="./LICENSE" target="_blank">LICENSE</a> file for details.
+</p>
+
+
+
 
 
 
