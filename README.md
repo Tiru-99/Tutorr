@@ -1,135 +1,130 @@
-# Turborepo starter
+<h1 align="center">Tutorr</h1>
 
-This Turborepo starter is maintained by the Turborepo core team.
+<h2>Introduction</h2>
 
-## Using this example
+<p>
+  <b>Tutorr</b> is a <b>marketplace-style freelancing platform</b> that connects teachers and students,
+  enabling them to discover, connect, and schedule sessions seamlessly.
+</p>
 
-Run the following command:
+<br/>
 
-```sh
-npx create-turbo@latest
-```
+<p>
+  Built with a <b>modern monorepo architecture</b> using
+  <a href="https://turbo.build/repo" target="_blank"> Turborepo</a>,
+  Tutorr ensures scalability, modularity, and lightning-fast builds across multiple apps and packages.
+</p>
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+##  Tech Stack
 
-### Apps and Packages
+| Layer | Tech |
+|-------|------|
+| **Framework** | [Next.js](https://nextjs.org/), [Express.js](https://expressjs.com/) |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/) |
+| **Message Queue** | [Redis](https://redis.io/), [BullMQ](https://docs.bullmq.io/) |
+| **Object Storage** | [Cloudinary](https://cloudinary.com/) |
+| **Authentication** | Built from scratch  |
+| **UI** | TailwindCSS + ShadCN/UI + TypeScript |
+| **Monorepo Tooling** | [Turborepo](https://turbo.build/repo) |
+| **Deployment** | Vercel (web), EC2 (bgsvc) , EC2(worker-cron)|
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+---
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+<h2>Project Structure</h2>
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+<p>
+The <b>Tutorr</b> monorepo is organized using <a href="https://turbo.build/repo" target="_blank">Turborepo</a>, ensuring modularity and separation of concerns between different services, packages, and shared logic.
+</p>
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+tutorr/
+├── apps/
+│ ├── apps/ # Next.js frontend application (main web app)
+│ ├── bgsvc/ # Background services , cron jobs and delayed notification service 
+│ └── worker-cron/ # Worker to process bookings 
+│
+├── packages/
+│ ├── common/ # Shared types, constants, and utility functions
+│ ├── db/ # Prisma ORM schema and database client
+│ ├── emails/ # Email templates and transactional mail logic
+│ └── <default-folder>/ # Other shared resources or internal tooling
+│
+├── turbo.json # Turborepo configuration
+├── package.json # Root dependency and script management
+├── pnpm-workspace.yaml # Defines monorepo workspace structure
+└── README.md # Project documentation
+```
+<h2> Setup Instructions</h2>
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+<p>
+Follow these steps to set up <b>Tutorr</b> locally on your system.
+</p>
+
+---
+
+<h3> Clone the Repository</h3>
+
+```bash
+git clone https://github.com/<your-username>/tutorr.git
+cd tutorr
 ```
 
-### Develop
+<h3>Add Environment Variables</h3> <p> You need to create <code>.env</code> files in the following locations: </p>
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+tutorr/
+├── .env                # Root-level environment variables
+├── apps/
+│   ├── .env            # For frontend/backend app configurations
+│
+└── packages/
+    └── db/
+        └── .env        # Database configuration
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+<br/> 
+<h4>Sample <code>.env</code> Configuration</h4>
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+# Env for apps/web folder
+JWT_SECRET=
+NEXT_PUBLIC_CLOUD_NAME=
+NEXT_PUBLIC_CLOUDINARY_API_KEY= 
+NEXT_PUBLIC_CLOUDINARY_API_SECRET=
+REDIS_HOST ="localhost"
+REDIS_PORT =6379
+NEXT_PUBLIC_BACKEND_URL ="http://localhost:8001"
+NEXT_PUBLIC_RAZORPAY_KEY =
+RAZORPAY_SECRET_KEY=
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+RAZORPAYX_ACCOUNT_NUMBER=
+RAZORPAYX_SECRET =
+RAZORPAYX_KEY_ID =
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
 
-### Remote Caching
+# Env for root
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+NEXT_PUBLIC_CLOUD_NAME="dmlnvdv3y"
+NEXT_PUBLIC_CLOUDINARY_API_KEY="368237727792749"
+NEXT_PUBLIC_CLOUDINARY_API_SECRET="y_HcSJ7oteNNww9Km_bTdhOTq14"
+REDIS_URL=rediss://default:ATQDAAIncDIyZjJkZGFkNTM2NmQ0Nzg5YTA5NjVjYjhkYjNiMjk4M3AyMTMzMTU@delicate-octopus-13315.upstash.io:6379
+REDIS_PORT =6379
+RAZORPAY_KEY=rzp_test_RDppVjCb1nRJNQ
+RAZORPAY_SECRET_KEY=GpMSC6B04srpjDrA8T0yBi1Z
+RESEND_API_KEY=re_SUZz8F9m_BreDVEPaUXmRKxFvYfW6XunB
+GMAIL_PASS =nrvrgsjmgmmzbpmq
+GMAIL_USER =noreplytutorr@gmail.com
+REDIS_HOST ="localhost"
+NODE_ENV = "development"
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
 
-```
-cd my-turborepo
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
