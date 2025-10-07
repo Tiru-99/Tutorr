@@ -67,7 +67,7 @@ Follow these steps to set up <b>Tutorr</b> locally on your system.
 <h3> Clone the Repository</h3>
 
 ```bash
-git clone https://github.com/<your-username>/tutorr.git
+git clone https://github.com/Tiru-99/Tutorr.git
 cd tutorr
 ```
 
@@ -110,11 +110,10 @@ RAZORPAYX_KEY_ID =
 
 REDIS_URL="I am using upstash redis "
 REDIS_PORT =6379
-RAZORPAY_KEY=rzp_test_RDppVjCb1nRJNQ
-RAZORPAY_SECRET_KEY=GpMSC6B04srpjDrA8T0yBi1Z
-RESEND_API_KEY=re_SUZz8F9m_BreDVEPaUXmRKxFvYfW6XunB
-GMAIL_PASS =nrvrgsjmgmmzbpmq
-GMAIL_USER =noreplytutorr@gmail.com
+RAZORPAY_KEY=
+RAZORPAY_SECRET_KEY=
+GMAIL_PASS =
+GMAIL_USER =
 REDIS_HOST ="localhost"
 NODE_ENV = "development" # or production if deploying
 
