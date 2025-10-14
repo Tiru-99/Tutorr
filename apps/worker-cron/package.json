@@ -7,6 +7,7 @@
     "prisma:generate": "npm run generate --workspace=@tutorr/db",
     "build": "tsc",
     "start": "ts-node src/index.ts",
+    "prod:start":"node dist/index.js",
     "start-worker": "nodemon --watch src --exec ts-node src/scripts/start.ts",
     "stop-worker": "ts-node src/scripts/close.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
