@@ -3,19 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build":"tsc -b"
   },
   "exports": {
     ".": {
-      "import": "./src/index.ts",
-      "require": "./src/index.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
     "./redis": {
-      "import": "./src/config/redis.ts",
-      "require": "./src/config/redis.ts"
+      "import": "./dist/config/redis.js",
+      "require": "./dist/config/redis.js"
     } , 
     "./schema" : {
-      "import" : "./src/schema.ts"
+      "import" : "./dist/schema.js"
     }
   },
   "keywords": [],

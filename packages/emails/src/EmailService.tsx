@@ -6,10 +6,10 @@ import { render, renderAsync } from "@react-email/render";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
-import InstantBookingConfirmation from "../templates/InstantBookingConfirmation";
-import OneHourBeforeReminder from "../templates/OneHourBeforeReminder";
-import OnTimeReminder from "../templates/OnTimeReminder";
-import CancellationNotification from "../templates/CancellationNotfication";
+import InstantBookingConfirmation from "./templates/InstantBookingConfirmation";
+import OneHourBeforeReminder from "./templates/OneHourBeforeReminder";
+import OnTimeReminder from "./templates/OnTimeReminder";
+import CancellationNotification from "./templates/CancellationNotfication";
 
 dotenv.config({ path: "../../.env" });
 

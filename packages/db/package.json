@@ -7,9 +7,9 @@
     "generate" :"prisma generate"
   },
   "exports": {
-    ".": "./src/prisma.ts",
-    "./prisma": "./src/prisma.ts",
-    "./types": "./src/types.ts"
+    ".": "./dist/prisma.js",
+    "./prisma": "./dist/prisma.js",
+    "./types": "./dist/types.js"
   },
   "keywords": [],
   "author": "",
