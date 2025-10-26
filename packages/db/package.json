@@ -1,15 +1,16 @@
 {
   "name": "@tutorr/db",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/prisma.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1", 
+    "build":"tsc -b",
     "generate" :"prisma generate"
   },
   "exports": {
-    ".": "./src/prisma.ts",
-    "./prisma": "./src/prisma.ts",
-    "./types": "./src/types.ts"
+    ".": "./dist/prisma.js",
+    "./prisma": "./dist/prisma.js",
+    "./types": "./dist/types.d.ts"
   },
   "keywords": [],
   "author": "",
