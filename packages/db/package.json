@@ -4,6 +4,7 @@
   "main": "dist/prisma.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1", 
+    "build":"tsc -b",
     "generate" :"prisma generate"
   },
   "exports": {
