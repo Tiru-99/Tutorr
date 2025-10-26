@@ -28,7 +28,8 @@
         "REDIS_URL",
         "GMAIL_PASS",
         "GMAIL_USER",
-        "RAZORPAY_KEY"
+        "RAZORPAY_KEY",
+        "DATABASE_URL"
       ]
     },
     
