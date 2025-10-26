@@ -11,6 +11,7 @@
         ".env*"
       ],
       "outputs": [
+        "dist/**",
         ".next/**",
         "!.next/cache/**"
       ],
@@ -30,6 +31,7 @@
         "RAZORPAY_KEY"
       ]
     },
+    
     "lint": {
       "dependsOn": [
         "^lint"
