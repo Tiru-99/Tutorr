@@ -1,7 +1,7 @@
 {
   "name": "@tutorr/db",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/prisma.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1", 
     "generate" :"prisma generate"
@@ -9,7 +9,7 @@
   "exports": {
     ".": "./dist/prisma.js",
     "./prisma": "./dist/prisma.js",
-    "./types": "./dist/types.js"
+    "./types": "./dist/types.d.ts"
   },
   "keywords": [],
   "author": "",
