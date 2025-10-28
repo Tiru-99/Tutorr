@@ -36,4 +36,5 @@ jobs:
             git reset --hard origin/main
             cd apps/worker-cron
             npm ci
+            npx turbo run build --filter=worker-cron
             pm2 reload worker 
