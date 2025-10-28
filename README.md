@@ -127,7 +127,8 @@ DATABASE_URL="enter your own url " #if using docker use docker based url
 <h4> Installing dependencies and running the project</h4>
 
 ```bash
-# Run this command ar root 
+# Run this command ar root
+npm run build # mandatory process or the project wont work
 npm install
 npm run dev
 ```
