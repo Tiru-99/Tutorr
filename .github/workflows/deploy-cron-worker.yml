@@ -36,4 +36,5 @@ jobs:
             git reset --hard origin/main
             cd apps/bgsvc
             npm ci
+            npx turbo run build --filter=bgsvc
             pm2 reload tutorr-cron 
