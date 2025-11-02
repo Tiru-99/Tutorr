@@ -17,6 +17,7 @@ import { useGetSlotsByDate } from "@/hooks/overrideHooks";
 import { DateTime } from "luxon";
 import { toast } from "sonner";
 import { io } from 'socket.io-client';
+import { Badge } from "../ui/badge";
 
 type SlotType = {
     slot: { startTime: string; endTime: string } | null;
@@ -45,7 +46,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
     const { Razorpay } = useRazorpay();
 
 
-    const safeDate = date ?? new Date(); 
+    const safeDate = date ?? new Date();
     const convertedDate = new Date(safeDate);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const weekDay = convertedDate
@@ -79,7 +80,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                 try {
                     setIsPaymentLoading(true);
                     toast.loading("Initializing payment...", { id: "payment-init" });
-                    
+
                     await verifyAndCheckout(order, studentEmail, studentName, Razorpay);
 
                     toast.dismiss("payment-init");
@@ -321,11 +322,11 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                         const localEnd = DateTime.fromISO(slot.endTime, { zone: "utc" }).toLocal().toFormat("hh:mm a")
 
                                         return (
-                                            <div
+                                            <Badge
                                                 key={slot.startTime}
-                                                className={`inline-flex items-center rounded-md border cursor-pointer px-2.5 py-0.5 text-sm font-medium text-gray-800 shadow-sm transition-colors ${selectedSlot.index === index
-                                                        ? "bg-blue-500 border-blue-500 text-white hover:bg-blue-500"
-                                                        : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border hover:border-gray-500"
+                                                className={`inline-flex items-center justify-center rounded-lg border cursor-pointer px-3 py-1 text-sm font-medium shadow-xs transition-all duration-150 ${selectedSlot.index === index
+                                                        ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
+                                                        : "bg-neutral-50 border-gray-300 text-neutral-900 hover:bg-gray-200 hover:border-gray-400"
                                                     }`}
                                                 onClick={() => {
                                                     if (selectedSlot.index === index) {
@@ -338,7 +339,7 @@ export default function BookDialog({ id, price }: { id: string, price: number })
                                                 }}
                                             >
                                                 {localStart} - {localEnd}
-                                            </div>
+                                            </Badge>
                                         )
                                     })}
                             </div>
