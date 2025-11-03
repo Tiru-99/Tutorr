@@ -2,11 +2,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from 'crypto'
 import { BookingQueue } from "@tutorr/common";
-import redis from "@tutorr/common";
+import getRedis from "@tutorr/common";
 import prisma from "@tutorr/db";
+
 
 //verify-payment handler 
 export async function POST(req: NextRequest) {
+    const redis = getRedis(); 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = await req.json();
     console.log(razorpay_order_id, razorpay_payment_id, razorpay_signature);
     const key_secret = process.env.RAZORPAY_SECRET_KEY!;

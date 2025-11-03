@@ -1,7 +1,7 @@
 import express from 'express';
-import redis, { BackgroundJobWorker } from '@tutorr/common';
+import getRedis, { BackgroundJobWorker } from '@tutorr/common';
 import { NotificationQueue, NotificationWorker, BackgroundJobQueue } from '@tutorr/common';
-import { createServer } from 'http';
+import { createServer, get } from 'http';
 import cors from 'cors';
 
 // Bull-board imports
@@ -11,7 +11,7 @@ import { ExpressAdapter } from "@bull-board/express";
 
 const app = express();
 const server = createServer(app);
-
+let redis = getRedis(); 
 app.use(cors({
     origin: "*",
     credentials: false,

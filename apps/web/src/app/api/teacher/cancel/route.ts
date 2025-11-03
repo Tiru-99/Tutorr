@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
-import redis, { razorpay } from "@tutorr/common";
+import getRedis, { razorpay } from "@tutorr/common";
 import { NotificationQueue } from "@tutorr/common";
 
+
+
+
 export async function POST(req: NextRequest) {
+    const redis = getRedis(); 
     const { bookingId, reason } = await req.json();
     const teacherId = req.headers.get("x-teacher-id");
 

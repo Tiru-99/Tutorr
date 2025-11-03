@@ -3,7 +3,7 @@ import { Job } from "bullmq";
 import Redis from 'ioredis';
 import { BookingCreationData, BookingJobData } from "./types";
 import { acquireLockWithFencing } from "../../config/aquireLock";
-import redis from "../../config/redis";
+import getRedis from "../../config/redis";
 import { createOrder } from "../../config/createOrder";
 import prisma from '@tutorr/db';
 import { createMeeting } from "../../config/createMeeting";
@@ -11,6 +11,7 @@ import { Server as SocketIoServer } from 'socket.io';
 import { NotificationQueue } from "../notification/queue";
 import { NotificationType } from "@tutorr/emails";
 
+let redis = getRedis(); 
 
 export class BookingWorker extends BaseWorker<any> {
     private io: SocketIoServer;

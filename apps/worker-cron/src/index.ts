@@ -3,7 +3,7 @@ import { setupSocketIO } from './socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { BookingWorker } from '@tutorr/common'; 
-import redis from '@tutorr/common';
+import getRedis from '@tutorr/common';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -13,6 +13,7 @@ dotenv.config({
 
 const app = express();
 const server = createServer(app);
+let redis = getRedis(); 
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
