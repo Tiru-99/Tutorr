@@ -20,14 +20,9 @@
         "REDIS_HOST",
         "REDIS_PORT",
         "RAZORPAY_SECRET_KEY",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
         "RAZORPAYX_ACCOUNT_NUMBER",
         "RAZORPAYX_SECRET",
         "RAZORPAYX_KEY_ID",
-        "REDIS_URL",
-        "GMAIL_PASS",
-        "GMAIL_USER",
         "RAZORPAY_KEY",
         "DATABASE_URL"
       ]
