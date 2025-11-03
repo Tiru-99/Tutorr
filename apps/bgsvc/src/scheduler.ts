@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { BackgroundJobWorker, BackgroundJobQueue } from "@tutorr/common";
-import redis from "@tutorr/common";
+import getRedis from "@tutorr/common";
 
 // bull-board imports
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
@@ -8,7 +8,7 @@ import { createBullBoard } from "@bull-board/api";
 import { ExpressAdapter } from "@bull-board/express";
 
 const app = express();
-
+let redis = getRedis(); 
 // Initialize worker
 new BackgroundJobWorker(redis);
 

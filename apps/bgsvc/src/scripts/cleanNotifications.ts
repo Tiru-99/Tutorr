@@ -1,8 +1,8 @@
-import redis from '@tutorr/common';
+import getRedis from '@tutorr/common';
 import { Queue } from 'bullmq';
 
 // Warning: This script should only be run in dev environment, NOT in production!
-
+let redis = getRedis(); 
 async function cleanNotifications() {
     console.log("🧹 Cleaning up existing notifications...");
     const notificationQueue = new Queue("notification", { connection: redis });

@@ -1,5 +1,7 @@
-import redis from "@tutorr/common";
+import getRedis from "@tutorr/common";
 import { Queue } from "bullmq";
+
+let redis = getRedis(); 
 
 async function cleanSchedulers() {
   console.log("🧹 Cleaning up existing job schedulers...");
