@@ -19,7 +19,6 @@
         "JWT_SECRET",
         "REDIS_HOST",
         "REDIS_PORT",
-        "REDIS_URL",
         "RAZORPAY_SECRET_KEY",
         "RAZORPAYX_ACCOUNT_NUMBER",
         "RAZORPAYX_SECRET",
