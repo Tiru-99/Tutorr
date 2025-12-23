@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@tutorr/db";
-import getRedis, { razorpay } from "@tutorr/common";
-import { NotificationQueue } from "@tutorr/common";
+import { razorpay } from "@tutorr/common";
+import { notificationQueue } from "@/utils/queue";
 
 
 
 
 export async function POST(req: NextRequest) {
-    const redis = getRedis(); 
+
     const { bookingId, reason } = await req.json();
     const teacherId = req.headers.get("x-teacher-id");
 
@@ -98,7 +98,6 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
-                    const notificationQueue = new NotificationQueue(redis);
                     notificationQueue.cancelBookingNotification({
                         bookingId: booking.id,
                         jobType: "cancel-booking",

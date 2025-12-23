@@ -35,7 +35,7 @@ export abstract class BaseWorker<T = any> {
             }
         );
 
-        this.setupEventListeners(); 
+        this.setupEventListeners();
     }
 
 
@@ -44,7 +44,7 @@ export abstract class BaseWorker<T = any> {
 
     //setup event listeners for the workers 
     protected setupEventListeners() {
-    
+
         this.worker.on('completed', (job) => {
             console.log(`Job ${job.id} completed successfully`);
         });
@@ -63,11 +63,11 @@ export abstract class BaseWorker<T = any> {
     }
 
     async close() {
-        return this.worker.close(); 
+        return this.worker.close();
     }
 
     async getWorker() {
-        return this.worker; 
+        return this.worker;
     }
 
     async waitUntilReady() {

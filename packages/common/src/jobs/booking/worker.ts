@@ -9,9 +9,10 @@ import prisma from '@tutorr/db';
 import { createMeeting } from "../../config/createMeeting";
 import { Server as SocketIoServer } from 'socket.io';
 import { NotificationQueue } from "../notification/queue";
-import { NotificationType } from "@tutorr/emails";
 
+//singleton
 let redis = getRedis(); 
+let notificationQueue = new NotificationQueue(redis); 
 
 export class BookingWorker extends BaseWorker<any> {
     private io: SocketIoServer;
@@ -180,9 +181,6 @@ export class BookingWorker extends BaseWorker<any> {
                 }
             })
 
-            //send notification 
-            //notification queue here
-            const notificationQueue = new NotificationQueue(redis);
 
             //jobType isn't actually required here         
             notificationQueue.addBookingNotification({

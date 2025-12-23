@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import crypto from 'crypto'
-import { BookingQueue } from "@tutorr/common";
+import { bookingQueue } from "@/utils/queue";
 import getRedis from "@tutorr/common";
 import prisma from "@tutorr/db";
 
@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
         }
 
         //add the booking creating job here 
-        const bookingQueue = new BookingQueue(redis);
         console.log("The fencing token in the verify is", fencingToken);
         await bookingQueue.addJob('booking', {
             studentId,

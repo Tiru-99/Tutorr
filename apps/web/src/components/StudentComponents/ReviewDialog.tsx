@@ -28,8 +28,8 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({ bookingId }) => {
   // update once data comes from API
   useEffect(() => {
     if (data) {
-      setRating(data.review.rating ?? 0);
-      setReview(data.review.comment ?? "");
+      setRating(data.review?.rating ?? 0);
+      setReview(data.review?.comment ?? "");
     } else {
       setRating(0);
       setReview("");

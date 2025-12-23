@@ -2,7 +2,7 @@ import express from 'express';
 import { setupSocketIO } from './socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { BookingWorker } from '@tutorr/common'; 
+import { BookingWorker, NotificationWorker , BackgroundJobWorker} from '@tutorr/common'; 
 import getRedis from '@tutorr/common';
 import dotenv from 'dotenv';
 import cors from 'cors';
