@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
 
+
+
 let redisInstance: Redis | null = null;
 
 function getRedis(): Redis {
@@ -22,8 +24,8 @@ function getRedis(): Redis {
       });
     }
   }
-  
-  return redisInstance;
+
+  return redisInstance; 
 }
 
 export default getRedis;

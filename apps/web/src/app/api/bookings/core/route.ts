@@ -5,13 +5,10 @@
 // 4) Send the notification 
 
 import { NextRequest, NextResponse } from "next/server";
-import getRedis from '@tutorr/common'
-import { BookingQueue } from '@tutorr/common'
-
+import { bookingQueue } from "@/utils/queue";
 
 
 export async function POST(req: NextRequest) {
-    const redis = getRedis(); 
     //create a lock using the redis lua script 
     const { studentId, teacherId, startTime, endTime, price, date } = await req.json();
     console.log("Code is coming in the backend ", date);
@@ -27,7 +24,6 @@ export async function POST(req: NextRequest) {
 
     try {
         //create a job 
-        const bookingQueue = new BookingQueue(redis);
         const job = await bookingQueue.addJob('booking', {
             studentId,
             teacherId,
